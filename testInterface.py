@@ -47,19 +47,7 @@ for var in range(nbNeuronnesT) :
                     recupCoord = sepCoord[-1][:-3]
                     splitCoord = recupCoord.split("|")
                     
-                    print("var = ",var)    
-                    print("splitCoord = ",splitCoord)                
-                    neur = var + 1
-                    
-                    for var1 in range(nbNeuronneCouche):
-                        recupTags1 = canvas.gettags(neur)
-                        sepCoord1 = str(recupTags1).split("$");
-                        recupCoord1 = sepCoord1[-1][:-3]
-                        splitCoord1 = recupCoord1.split("|")
-                        print("var1 = ",neur)  
-                        print("splitCoord1 = ",splitCoord1)  
-                        canvas.create_line(splitCoord[0], splitCoord[-1], splitCoord1[0], splitCoord1[-1]) 
-                        neur = neur + nbCouche
+              #à poursuivre
                     
 canvas.pack()
 
