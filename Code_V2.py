@@ -379,7 +379,7 @@ X_train,X_test,y_train,y_test=train_test_split(X,
                                                test_size=testsize)
 
 #transformation des données pour être au bon format
-# X_train est de la forme : 2 colonnes, m lignes (examples)
+# X_train est de la forme :x 2 colonnes, m lignes (eamples)
 # y_train est de la forme : m colonnes, 1 ligne
 
 # La transposée de X_train est de la forme : m colonnes (exemples), 2 lignes
@@ -416,31 +416,92 @@ plot_histories (eta,epochs,cost_history,accuracy_history)
 plot_decision_boundary(lambda x: network.predict(np.transpose(x)), X, y)
 #plot_decision_boundary(lambda x: clf.predict(np.transpose(x)), X, y)
 
+#print("XTEST",X_test))
+#Print("YPRED",y_pred[0]
 
-print("X_train",X_train)
-#print("y_train",y_train[0])
-
-compteur0 = 0
-compteur1 = 0
-
-zeroTab = []
-oneTab = []
-
-y_train_p = str(y_train[0])
-y_train_propre = y_train_p[1:-1]
-
-i = 0
-while compteur0 != 10 and compteur1 != 10:
-    if y_train_propre[i] == "0":
-        zeroTab.append(X_train[i])
-        compteur0 = compteur0 + 1
-    elif y_train_propre[i] == "1":
-        oneTab.append(X_train[i])
-        compteur1 = compteur1 + 1
-    i = i+1
+class Point :
+    activation_val = 0
+    x = 0
+    y = 0
+    
+    def __init__(self,av):
+        self.activation_val = av
+        self.x = 0
+        self.y = 0
+    
+    def __str__(self):
+        return str(self.__dict__)
         
-print("zerotab : ",zeroTab)
-print("oneTab : ",oneTab)
+tab_min = []
+for val in range(10):   
+    tab_min.append(Point(1))
+
+tab_max = []
+for val in range(10):   
+    tab_max.append(Point(0))
+
+for ind in range(len(y_pred[0])):
+    tab_min = sorted(tab_min,key=lambda Point: Point.activation_val, reverse=True)
+    tab_max = sorted(tab_max,key=lambda Point: Point.activation_val, reverse=False)
+    
+    if y_pred[0][ind] < tab_min[0].activation_val:
+        tab_min[0].activation_val = y_pred[0][ind]
+        tab_min[0].x = X_test[0][ind]
+        tab_min[0].y = X_test[1][ind]
+        
+    if y_pred[0][ind] > tab_max[0].activation_val:
+        tab_max[0].activation_val = y_pred[0][ind]
+        tab_max[0].x = X_test[0][ind]
+        tab_max[0].y = X_test[1][ind]
+            
+tab_min = sorted(tab_min,key=lambda Point: Point.activation_val, reverse=True)
+tab_max = sorted(tab_max,key=lambda Point: Point.activation_val, reverse=False)
+
+y_pred_classe = []
+y_test_classe=[]
+for var in tab_min:
+    y_pred_classe.append(var.activation_val)
+    y_test_classe.append(0)
+    print(var)
+
+for var in tab_max:
+    y_pred_classe.append(var.activation_val)
+    y_test_classe.append(1)
+    print(var)
+
+accuracy_test_classe = network.accuracy(y_pred_classe, y_test_classe)
+
+print("\nTest accuracy classes : ",accuracy_test_classe)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
