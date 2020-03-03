@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Mar  3 14:13:35 2020
+
+@author: pierr
+"""
+
 import os
 import re
 import numpy as np
@@ -512,9 +519,8 @@ def tabPointSelect(X_test_propre,y_test_classe):
     plt.xlim(-1.25, 2.25)
     plt.ylim(-0.75, 1.25)
     plt.scatter(pnts_X, pnts_Y)#cmap=plt.cm.PiYG)
-    plt.title("Pnt séléctionnés")#cmap=plt.cm.PiYG)
-    
-    
+    plt.title("Pnt séléctionnés")#cmap=plt.cm.PiYG) 
+
     
 tab_min = []
 for val in range(50):   
@@ -598,9 +604,49 @@ tabPointSelect(X_test_propre,y_test_classe)
 layers_to_csv("layers_to_csv_2_3_1_tmp",X_test_propre,y_preds_classe,y_preds)
 
 os.remove ('layers_to_csv_2_3_1_.csv')
-# tri du fichier
+## tri du fichier
 os.system ('sort layers_to_csv_2_3_1_tmp > layers_to_csv_2_3_1_.csv')
 setHeader("layers_to_csv_2_3_1_.csv")
-# effacer le fichier intermédiaire
+## effacer le fichier intermédiaire
 os.remove ('layers_to_csv_2_3_1_tmp')
+
+def discretise_dataset(filename,bins):
+    df = pd.read_csv(filename, sep = ',', header = None) 
+    oneColumn = np.array(df[1])
+    for i in range(2,df.shape[1]):
+        oneColumn=np.append(oneColumn,np.array(df[i]))
+    dfoneColumn=pd.DataFrame(oneColumn)
+    nb_bins=bins
+    dftemp=pd.DataFrame()
+    dftemp[0]=pd.cut(dfoneColumn[0], bins=nb_bins, labels=np.arange(nb_bins), right=False)
+    df_new=pd.DataFrame(df[0])
+    nb_tuples=df.shape[0]
+    j=0
+    for i in range(1,df.shape[1]):
+        df_new[i]=np.copy(dftemp[0][j:j+nb_tuples])
+        j+=nb_tuples
+    return df_new
+
+def save_result_layers(filename,X,y,y_preds):
+    f = open(filename,'w')
+    for i in range(len(X[0])):
+        string = str(y[i])+','
+        for nb_layers in range(1,2):
+            for j in range(len(y_preds[nb_layers])): 
+                string+=str(y_preds[nb_layers][j][i])+','
+        string=string[0:-1]
+        string+='\n'
+        f.write(string)
+
+    f.close()
+
+
+save_result_layers("layers_to_csv_2_3_1_before_discretization.csv",X_test_propre,y_preds_classe,y_preds)
+
+df=discretise_dataset('layers_to_csv_2_3_1_before_discretization.csv',8)
+print(df)
+
+
+
+
     
