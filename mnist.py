@@ -90,7 +90,7 @@ train_y=encoder.fit_transform(train_y)
 input_dim = 784
 
 model = Sequential()
-model.add(Dense(512, input_dim = input_dim , activation = 'relu'))
+model.add(Dense(5, input_dim = input_dim , activation = 'relu'))
 model.add(Dense(1, activation = 'sigmoid'))
 
 model.compile(loss = 'binary_crossentropy' , optimizer = 'adam' , metrics = ['accuracy'] )
@@ -111,7 +111,6 @@ save_result_layers("mnist_512_tmp",X_good,y_good,result_layers)
 os.system ('sort mnist_512_tmp > mnist_512_.csv')
 # effacer le fichier intermédiaire
 #os.system ('rm mnist_512_tmp')
-
 
 def get_directory_layers_from_csv(filename):
     tokens=filename.split("_")
@@ -173,7 +172,40 @@ def discretise_dataset(filename,bins):
         j+=nb_tuples
     return df_new
     
-# exemple d'utilisation     
-df=discretise_dataset('mnist_512/mnist_l1_512.csv',512)
+# exemple d'utilisation  
+print("test mnnist")
+df=discretise_dataset('mnist_512/mnist_l1_512.csv',5)
 print (df.head())
 print (df.tail())
+
+
+
+from Levenshtein import distance
+
+#exemple d'utilisation de la mesure de levenshtein
+#print (distance('3,10,0,4,0,0,9,0', '4,8,0,2,0,0,8,0'))
+
+
+#Creation d'une matrice de distance
+#df_mat=pd.DataFrame(X)
+string="mnist_512/mnist_l1_512.csv"
+#df_mat.to_csv(string, sep=',', encoding='utf-8',index=False, header=False)
+df_mat=pd.read_csv(string, sep = ',', header = None)
+#recuperation de la matrice sous la forme de chaine
+ch = df_mat.to_string(header=False,
+                  index=False,
+                  index_names=False).split('\n')
+vals = [','.join(ele.split()) for ele in ch]
+print ("vals2 : ", vals)    
+
+
+
+List1 = vals
+List2 = vals
+Matrix = np.zeros((len(List1),len(List2)),dtype=np.int)
+
+for i in range(0,len(List1)):
+    for j in range(0,len(List2)):
+        Matrix[i,j] = distance(List1[i],List2[j])
+
+print (Matrix)
