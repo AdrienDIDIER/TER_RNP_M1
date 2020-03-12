@@ -3,20 +3,32 @@ import pandas as pd
 import keras
 import os
 import re
-from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.wrappers.scikit_learn import KerasClassifier
 from keras.utils import np_utils
-from sklearn.preprocessing import LabelEncoder
 from keras.utils.np_utils import to_categorical
+
+from tensorflow.keras.datasets import mnist
+
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import LabelEncoder
 from sklearn import preprocessing, model_selection
 from sklearn.datasets import make_moons
 from sklearn.datasets import make_circles
 from sklearn import datasets
-from tensorflow.keras.datasets import mnist
+from sklearn.cluster import DBSCAN
+from sklearn import metrics
+from sklearn.datasets import make_blobs
+from sklearn.preprocessing import StandardScaler
+
+from scipy.cluster.hierarchy import dendrogram, linkage
+
 from Levenshtein import distance
 
+#Fonction permettant de récupérer les points qui ont été bien prédits
 def get_goodXy (X,y):
     ynew = model.predict_classes(X)
     X_good =[]
@@ -29,6 +41,7 @@ def get_goodXy (X,y):
             y_good.append(y[i])
     return X_good,y_good        
 
+#Fonction permettant d'obtenir les fonctions d'activation de chaque couches
 def get_result_layers(model,X):
     result_layers=[]
     for i in range (len(model.layers)-1):
@@ -54,65 +67,8 @@ def save_result_layers(filename,X,y,result_layers):
         f.write(my_string)    
     f.close()
     
-
-(X_train, y_train), (X_test, y_test) = mnist.load_data()
-X_train_sample=X_train[0:100]
-y_train_sample=y_train[0:100]
-
-X_train=X_train_sample
-y_train=y_train_sample
-X_train = X_train.reshape(100, 784)
-X_train = X_train.astype('float32')
-
-X_train /= 255
-
-
-
-X_01=[]
-y_01=[]
-nb_X=0
-for i in range(X_train.shape[0]):
-    if (y_train[i]==0 or y_train[i]==1):
-        
-        nb_X+=1
-        X_01.append(X_train[i])
-        y_01.append(y_train[i])
-
-       
-train_X=np.asarray(X_01)
-
-train_y=y_01
-
-encoder = LabelEncoder()
-train_y=encoder.fit_transform(train_y)
-
-
-1
-input_dim = 784
-
-model = Sequential()
-model.add(Dense(5, input_dim = input_dim , activation = 'relu'))
-model.add(Dense(1, activation = 'sigmoid'))
-
-model.compile(loss = 'binary_crossentropy' , optimizer = 'adam' , metrics = ['accuracy'] )
-
-model.fit(train_X, train_y, epochs = 40, batch_size = 32)
-
-X_good,y_good=get_goodXy (train_X, train_y)
-
-# Récupération des valeurs de tous les layers sauf le dernier
-result_layers=get_result_layers(model,X_good)
-
-# Sauvegarde du fichier
-# structure :
-# 0/1 = valeur de la classe
-# chaque valeur de layer est entourée par une étoile *
-save_result_layers("mnist_512_tmp",X_good,y_good,result_layers)
-# tri du fichier
-os.system ('sort mnist_512_tmp > mnist_512_.csv')
-# effacer le fichier intermédiaire
-#os.system ('rm mnist_512_tmp')
-
+    
+#Fonction permettant de créer un csv pour chaque couches dans un répertoire   
 def get_directory_layers_from_csv(filename):
     tokens=filename.split("_")
     df = pd.read_csv(filename, sep = ',', header = None) 
@@ -136,8 +92,6 @@ def get_directory_layers_from_csv(filename):
     vals = [','.join(ele.split()) for ele in ch]
     
     # sauvegarde dans des fichiers spécifiques par layer
-    token_layer=[]
-    token_exemples=[]
     for nb_exemples in range (len(vals)):
         deb=str(df[0][nb_exemples])+','
         # 1 ligne correspond à une chaine
@@ -151,11 +105,8 @@ def get_directory_layers_from_csv(filename):
             
             f[nb_token].write(save_token)
 
-        
-filename='mnist_512_tmp'
-get_directory_layers_from_csv(filename)
 
-
+#Fonction permettant de discrétiser nos valeurs présentes dans le fichier csv
 def discretise_dataset(filename,bins):
     df = pd.read_csv(filename, sep = ',', header = None) 
     oneColumn = np.array(df[1])
@@ -172,26 +123,93 @@ def discretise_dataset(filename,bins):
         df_new[i]=np.copy(dftemp[0][j:j+nb_tuples])
         j+=nb_tuples
     return df_new
-    
-# exemple d'utilisation  
-df=discretise_dataset('mnist_512/mnist_l1_512.csv',5)
-#print (df.head())
-#print (df.tail())
 
-#exemple d'utilisation de la mesure de levenshtein
-#print (distance('3,10,0,4,0,0,9,0', '4,8,0,2,0,0,8,0'))
 
-#Creation d'une matrice de distance
-#df_mat=pd.DataFrame(X)
+print("\n\n\n========== Apprentissage ==========")
 
-df.to_csv("mnist_512/mnist_l1_512_disc.csv")
+#Utilisation du jeu de données mnist
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+X_train_sample=X_train[0:500]
+y_train_sample=y_train[0:500]
 
+X_train=X_train_sample
+y_train=y_train_sample
+X_train = X_train.reshape(500, 784)
+X_train = X_train.astype('float32')
+
+X_train /= 255
+
+
+#On récupère les objets appartenants aux classes 0 et 1
+X_01=[]
+y_01=[]
+nb_X=0
+for i in range(X_train.shape[0]):
+    if (y_train[i]==0 or y_train[i]==1):
+        
+        nb_X+=1
+        X_01.append(X_train[i])
+        y_01.append(y_train[i])
+
+       
+train_X=np.asarray(X_01)
+
+train_y=y_01
+
+encoder = LabelEncoder()
+train_y=encoder.fit_transform(train_y)
+
+
+
+#Création de notre reseau de neurones
+#La première couche possède 512 neurones, correspondant aux 512 pixels d'une image
+input_dim = 784
+
+model = Sequential()
+model.add(Dense(512, input_dim = input_dim , activation = 'relu'))
+model.add(Dense(1, activation = 'sigmoid'))
+
+model.compile(loss = 'binary_crossentropy' , optimizer = 'adam' , metrics = ['accuracy'] )
+
+model.fit(train_X, train_y, epochs = 40, batch_size = 100)
+
+X_good,y_good=get_goodXy (train_X, train_y)
+
+
+
+# Récupération des valeurs de tous les layers sauf le dernier
+result_layers=get_result_layers(model,X_good)
+
+
+
+# Sauvegarde du fichier
+# Structure :
+# 0/1 = valeur de la classe
+save_result_layers("mnist_512_tmp",X_good,y_good,result_layers)
+# tri du fichier puis conversion en csv
+os.system ('sort mnist_512_tmp > mnist_512_.csv')
+# effacer le fichier intermédiaire
+#os.system ('rm mnist_512_tmp')
+
+
+
+#Création du(des) csv à partir du fichier tmp 
+filename='mnist_512_tmp'
+get_directory_layers_from_csv(filename)
+
+  
+#Création de la matrice avec les données discrétisées
+df=discretise_dataset('mnist_512/mnist_l1_512.csv',512)
+
+
+#Enregistrement de la matrice en csv
 string="mnist_512/mnist_l1_512_disc.csv"
+df.to_csv(string)
 
-#df_mat.to_csv(string, sep=',', encoding='utf-8',index=False, header=False)
+
+#Recuperation de la matrice sous la forme de chaine
 df_mat=pd.read_csv(string, sep = ',',header = None)
 
-#recuperation de la matrice sous la forme de chaine
 ch = df_mat.to_string(header=False,index=False,index_names=False).split('\n')
 
 vals = []
@@ -203,37 +221,71 @@ for v in df_mat.values[1:]:
     new_string = string[:-1]
     vals.append(new_string)
 
-#print(vals)
-
 List1 = vals
 List2 = vals
 
+#Création de la matrice de distance à l'aide de la distance de Levenshtein
 Matrix = np.zeros((len(List1),len(List2)),dtype=np.int)
 
 for i in range(0,len(List1)):
     for j in range(0,len(List2)):
         Matrix[i,j] = distance(List1[i],List2[j])
 
-#print (Matrix)
-
-import numpy as np
-import sklearn.cluster
-
-words = vals
-words = np.asarray(words) #So that indexing with a list will work
-
-lev_similarity = -1*np.array([[distance(w1,w2)for w1 in words] for w2 in words])
-
-affprop = sklearn.cluster.AffinityPropagation(affinity="precomputed", damping=0.5)
-affprop.fit(lev_similarity)
-
-#Affichage
-for cluster_id in np.unique(affprop.labels_):
-    exemplar = words[affprop.cluster_centers_indices_[cluster_id]]
-    cluster = np.unique(words[np.nonzero(affprop.labels_==cluster_id)])
-    cluster_str = ", ".join(cluster)
-    print(" - *%s:* %s" % (exemplar, cluster_str))
 
 
+
+#Génération des clusters
+
+
+#X = StandardScaler().fit_transform(Matrix)
+print("\n\n\n========== MATRIX ==========")
+print(Matrix)
+db = DBSCAN(eps=250, min_samples=5).fit(Matrix)
+
+
+print("\n\n\n========== DBSCAN ==========")
+print(db)
+core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
+core_samples_mask[db.core_sample_indices_] = True
+labels = db.labels_
+
+# Number of clusters in labels, ignoring noise if present.
+n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+n_noise_ = list(labels).count(-1)
+
+
+print('Estimated number of clusters: %d' % n_clusters_)
+print('Estimated number of noise points: %d' % n_noise_)
+
+
+print("\n\n\n========== Clustering ==========")
+unique_labels = set(labels)
+colors = [plt.cm.Spectral(each)
+          for each in np.linspace(0, 1, len(unique_labels))]
+for k, col in zip(unique_labels, colors):
+    if k == -1:
+        # Black used for noise.
+        col = [0, 0, 0, 1]
+
+    class_member_mask = (labels == k)
+
+    xy = Matrix[class_member_mask & core_samples_mask]
+    plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+             markeredgecolor='k', markersize=14)
+
+    xy = Matrix[class_member_mask & ~core_samples_mask]
+    plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+             markeredgecolor='k', markersize=6)
+
+plt.title('Estimated number of clusters: %d' % n_clusters_)
+plt.show()
+
+
+print("\n\n\n========== Dendrogramme ==========")
+#Création du dendrogramme
+Z = linkage(Matrix, 'ward')
+fig = plt.figure(figsize=(25, 10))
+dn = dendrogram(Z)
+plt.show()
     
 
