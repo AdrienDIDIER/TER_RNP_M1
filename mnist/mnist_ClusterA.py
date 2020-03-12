@@ -21,7 +21,7 @@ from sklearn.datasets import make_circles
 from sklearn import datasets
 from sklearn.cluster import DBSCAN
 from sklearn import metrics
-from sklearn.datasets import make_blobs
+#from sklearn.datasets import make_blob
 from sklearn.preprocessing import StandardScaler
 
 from scipy.cluster.hierarchy import dendrogram, linkage
@@ -29,17 +29,25 @@ from scipy.cluster.hierarchy import dendrogram, linkage
 from Levenshtein import distance
 
 #Fonction permettant de récupérer les points qui ont été bien prédits
-def get_goodXy (X,y):
-    ynew = model.predict_classes(X)
-    X_good =[]
-    y_good=[]
-    for i in range(len(X)):
-        if (ynew[i]==0 and y[i]==1) or (ynew[i]==1 and y[i]==0):
-            print ("error prediction for X=%s, Predicted=%s, Real=%s"% (X[i], ynew[i], y[i]))
-        else :
-            X_good.append(X[i])
-            y_good.append(y[i])
-    return X_good,y_good        
+def get_goodXy (X,y,z):
+        ynew = model.predict_classes(X)
+        X_good =[]
+        y_good=[]
+        for i in range(len(X)):
+            if z==0:
+                if (ynew[i]==0 and y[i]==1) or (ynew[i]==1 and y[i]==0):
+                    print ("error prediction for X=%s, Predicted=%s, Real=%s"% (X[i], ynew[i], y[i]))
+                else :
+                    X_good.append(X[i])
+                    y_good.append(y[i])
+            else:
+                if (ynew[i]==5 and y[i]!=5):
+                    print ("error prediction for X=%s, Predicted=%s, Real=%s"% (X[i], ynew[i], y[i]))
+                else :
+                    X_good.append(X[i])
+                    y_good.append(y[i])
+        return X_good,y_good    
+        
 
 #Fonction permettant d'obtenir les fonctions d'activation de chaque couches
 def get_result_layers(model,X):
@@ -129,12 +137,12 @@ print("\n\n\n========== Apprentissage ==========")
 
 #Utilisation du jeu de données mnist
 (X_train, y_train), (X_test, y_test) = mnist.load_data()
-X_train_sample=X_train[0:500]
-y_train_sample=y_train[0:500]
+X_train_sample=X_train[0:100]
+y_train_sample=y_train[0:100]
 
 X_train=X_train_sample
 y_train=y_train_sample
-X_train = X_train.reshape(500, 784)
+X_train = X_train.reshape(100, 784)
 X_train = X_train.astype('float32')
 
 X_train /= 255
@@ -173,7 +181,7 @@ model.compile(loss = 'binary_crossentropy' , optimizer = 'adam' , metrics = ['ac
 
 model.fit(train_X, train_y, epochs = 40, batch_size = 100)
 
-X_good,y_good=get_goodXy (train_X, train_y)
+X_good,y_good=get_goodXy (train_X, train_y,0)
 
 
 
@@ -213,6 +221,7 @@ df_mat=pd.read_csv(string, sep = ',',header = None)
 ch = df_mat.to_string(header=False,index=False,index_names=False).split('\n')
 
 vals = []
+X_kmeans = []
 
 for v in df_mat.values[1:]:
     string = ""
@@ -220,7 +229,7 @@ for v in df_mat.values[1:]:
         string = string + str(s) + ","
     new_string = string[:-1]
     vals.append(new_string)
-
+    
 List1 = vals
 List2 = vals
 
@@ -233,7 +242,6 @@ for i in range(0,len(List1)):
 
 
 
-
 #Génération des clusters
 
 
@@ -241,6 +249,84 @@ for i in range(0,len(List1)):
 print("\n\n\n========== MATRIX ==========")
 print(Matrix)
 db = DBSCAN(eps=250, min_samples=5).fit(Matrix)
+
+
+
+
+print("\n\n\n========== KMEANS ==========")
+
+X_kmeans = df_mat.values[1:]
+    
+df_kmeans = KMeans(n_clusters=5).fit(X_kmeans)
+print("Label : ",df_kmeans.labels_)
+
+#Utilisation du jeu de données mnist
+(X_train_5, y_train_5), (X_test_5, y_test_5) = mnist.load_data()
+X_train_sample_5=X_train_5[0:100]
+y_train_sample_5=y_train_5[0:100]
+
+X_train_5=X_train_sample_5
+y_train_5=y_train_sample_5
+X_train_5 = X_train_5.reshape(100, 784)
+X_train_5 = X_train_5.astype('float32')
+
+X_train_5 /= 255
+
+#On récupère les objets appartenants aux classes 5
+X_5=[]
+y_5=[]
+nb_X5=0
+
+for i in range(X_train_5.shape[0]):
+    if (y_train_5[i]==5):
+        
+        nb_X5+=1
+        X_5.append(X_train_5[i])
+        y_5.append(y_train_5[i])
+
+       
+train_X_5=np.asarray(X_5)
+
+train_y_5=y_5
+
+encoder_5 = LabelEncoder()
+train_y_5=encoder_5.fit_transform(train_y_5)
+
+
+
+#Création de notre reseau de neurones
+#La première couche possède 512 neurones, correspondant aux 512 pixels d'une image
+input_dim = 784
+
+model_5 = Sequential()
+model_5.add(Dense(512, input_dim = input_dim , activation = 'relu'))
+model_5.add(Dense(1, activation = 'sigmoid'))
+
+model_5.compile(loss = 'binary_crossentropy' , optimizer = 'adam' , metrics = ['accuracy'] )
+
+model_5.fit(train_X_5, train_y_5, epochs = 40, batch_size = 100)
+
+X_good_5,y_good_5=get_goodXy (train_X_5, train_y_5,1)
+
+
+
+# Récupération des valeurs de tous les layers sauf le dernier
+result_layers_5=get_result_layers(model_5,X_good_5)
+
+
+
+# Sauvegarde du fichier
+# Structure :
+# 0/1 = valeur de la classe
+save_result_layers("mnist_512_tmp_5",X_good_5,y_good_5,result_layers_5)
+# tri du fichier puis conversion en csv
+os.system ('sort mnist_512_tmp_5 > mnist_512_5.csv')
+# effacer le fichier intermédiaire
+#os.system ('rm mnist_512_tmp')
+
+
+
+
 
 
 print("\n\n\n========== DBSCAN ==========")
@@ -258,7 +344,7 @@ print('Estimated number of clusters: %d' % n_clusters_)
 print('Estimated number of noise points: %d' % n_noise_)
 
 
-print("\n\n\n========== Clustering ==========")
+print("\n\n\n========== DBSCAN Clustering ==========")
 unique_labels = set(labels)
 colors = [plt.cm.Spectral(each)
           for each in np.linspace(0, 1, len(unique_labels))]
@@ -288,4 +374,3 @@ fig = plt.figure(figsize=(25, 10))
 dn = dendrogram(Z)
 plt.show()
     
-
