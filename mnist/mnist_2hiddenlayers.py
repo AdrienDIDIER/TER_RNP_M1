@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Mar 29 15:24:09 2020
-
-@author: pierr
-"""
-
 import numpy as np
 import pandas as pd 
 import keras
@@ -414,7 +407,7 @@ for i in range (len(values)):
 # on a bien ce qui est bon  
 
 with open('prediction_2layer.csv', mode='w') as csv_file:
-    fieldnames = ['class', 'objects in class 0', 'objects in class 1', 'signatures in cluster 0 in layer 1', 'signatures in cluster 1 in layer 1', 'signatures in cluster 2 in layer 1', 'signaturse in cluster 3 in layer 1', 'signatures in cluster 4 in layer 1', 'signatures in cluster 0 in layer 2', 'signatures in cluster 1 in layer 2', 'signatures in cluster 2 in layer 2', 'signatures in cluster 3 in layer 2', 'signatures in cluster 4 in layer 2']
+    fieldnames = ['class', 'objects in class 0', 'objects in class 1', 'signatures in cluster 0 in layer 1', 'signatures in cluster 1 in layer 1', 'signatures in cluster 2 in layer 1', 'signatures in cluster 3 in layer 1', 'signatures in cluster 4 in layer 1', 'signatures in cluster 0 in layer 2', 'signatures in cluster 1 in layer 2', 'signatures in cluster 2 in layer 2', 'signatures in cluster 3 in layer 2', 'signatures in cluster 4 in layer 2']
     writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 
     writer.writeheader()
@@ -422,7 +415,7 @@ with open('prediction_2layer.csv', mode='w') as csv_file:
         print ("\nPrediction pour classe #",real_values_predict[i]['value'])
         cpt = c.Counter(real_values_predict[i]['prediction'])
         print ('\n'.join(['({}) objets pour classe {}'.format(cpt[m],m) for m in cpt]))
-        writer.writerow({'class': real_values_predict[i]['value'], 'objects in class 0': cpt[0], 'objects in class 1': cpt[1], 'signatures in cluster 0 in layer 1': sig_counts_l1[i][0], 'signatures in cluster 1 in layer 1' : sig_counts_l1[i][1], 'signatures in cluster 2 in layer 1' : sig_counts_l1[i][2], 'signaturse in cluster 3 in layer 1' : sig_counts_l1[i][3], 'signatures in cluster 4 in layer 1': sig_counts_l1[i][4], 'signatures in cluster 0 in layer 2': sig_counts_l2[i][0], 'signatures in cluster 1 in layer 2': sig_counts_l2[i][1], 'signatures in cluster 2 in layer 2': sig_counts_l2[i][2], 'signatures in cluster 3 in layer 2': sig_counts_l2[i][3], 'signatures in cluster 4 in layer 2': sig_counts_l2[i][4]})
+        writer.writerow({'class': real_values_predict[i]['value'], 'objects in class 0': cpt[0], 'objects in class 1': cpt[1], 'signatures in cluster 0 in layer 1': sig_counts_l1[i][0], 'signatures in cluster 1 in layer 1' : sig_counts_l1[i][1], 'signatures in cluster 2 in layer 1' : sig_counts_l1[i][2], 'signatures in cluster 3 in layer 1' : sig_counts_l1[i][3], 'signatures in cluster 4 in layer 1': sig_counts_l1[i][4], 'signatures in cluster 0 in layer 2': sig_counts_l2[i][0], 'signatures in cluster 1 in layer 2': sig_counts_l2[i][1], 'signatures in cluster 2 in layer 2': sig_counts_l2[i][2], 'signatures in cluster 3 in layer 2': sig_counts_l2[i][3], 'signatures in cluster 4 in layer 2': sig_counts_l2[i][4]})
     
 
 
