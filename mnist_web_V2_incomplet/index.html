@@ -1,0 +1,675 @@
+<!doctype html>
+
+<html>
+<head>
+  <meta charset="utf-8">
+
+  <title>Interface web</title>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+        <table>
+            <tr>
+                <th>
+                    <canvas id="canvas" width="1200" height="1000">
+                    </canvas>
+                </th>
+                <th>
+                    <p>ROUGE = 0</p>
+                    <p>BLEU = 1</p>
+                    <button id="gauche" onclick="prev()">prev</button>
+                    <button id="droite" onclick="next()">next</button>
+                    <p id="index">0</p>
+                </th>
+            </tr>
+        </table>
+
+        </tr>
+
+  <script>
+
+        function pgcd(x, y) {
+            if ((typeof x !== 'number') || (typeof y !== 'number')) 
+                return false;
+            x = Math.abs(x);
+            y = Math.abs(y);
+            while(y) {
+                var t = y;
+                y = x % y;
+                x = t;
+            }
+            return x;
+        }
+
+        function getHauteurLargeurLayer(nodes_number){
+            if(nodes_number > MAX_NODES_PER_COLONNE ){
+                var max = 0
+                var i_save = 0
+                var j_save = 0
+                for(var i = 1; i <= MAX_NODES_PER_COLONNE; i++){
+                    for(var j = nodes_number - 10; j <= nodes_number; j++){
+                        var z = pgcd(i,j)
+                        if(z < MAX_NODES_PER_COLONNE & z > max){
+                            max = z
+                            i_save = i
+                            j_save = j
+                        }
+                    }
+                }
+                return [i_save, j_save/i_save, nodes_number - j_save]
+            }
+            return [1, nodes_number, 0]
+        }
+
+        function getNbLayers(all_clusters){
+            max = 0
+            for(var elem in all_clusters){
+                if(max < parseInt(all_clusters[elem].layer)){
+                    max = parseInt(all_clusters[elem].layer)
+                }
+            }
+            return max
+        }
+
+        function getNbClusters(all_clusters){
+            max = 0
+            for(var elem in all_clusters){
+                if(max < parseInt(all_clusters[elem].cluster)){
+                    max = parseInt(all_clusters[elem].cluster)
+                }
+            }
+            return max + 1
+        }
+
+        function getNbClasses(all_clusters){
+            max = 0
+            for(var elem in all_clusters){
+                if(max < parseInt(all_clusters[elem].class)){
+                    max = parseInt(all_clusters[elem].class)
+                }
+            }
+            return max + 1
+        }
+
+        //refaire fonction
+        function groupBy(arr, nb_layers){
+            results = []
+            for(var a in arr){
+                var obj = arr[a]
+                if(results.length == 0){
+                    obj.occurence = 1
+                    results.push(obj)
+                }else{
+                    for(var b in results){
+                        var eq = true;
+                        for(var l = 0; l < nb_layers; l++){
+                            if(eq){
+                                var layer_name = 'layer' + l
+                                if(obj[layer_name] != results[b][layer_name]){
+                                    obj.occurence = 1
+                                    results.push(obj)
+                                    eq = false
+                                }
+                            }
+                        }
+                        if(eq){
+                            results[b].occurence += 1                           
+                        }
+                    }
+                }
+            }
+        }
+
+        var canvas;
+        var context;
+
+        INTERFACE_HEIGHT = 900
+
+        var all_clusters = {{{ all_clusters }}}
+
+        var clusterized_values = {{{ clusterized_values }}}
+
+        var gb = groupBy(clusterized_values, 2)
+
+        console.log(gb)
+
+        var info_network = {{{ info_network }}}
+
+        var nb_layers = getNbLayers(all_clusters)
+        var nb_clusters = getNbClusters(all_clusters)
+        var nb_classes = getNbClasses(all_clusters)
+
+        window.addEventListener('load', function () {
+            canvas = document.querySelector('#canvas');
+            context = canvas.getContext('2d');
+            draw();
+        });
+
+        MIN_NEURONE_SIZE = 5
+        MAX_NEURONE_SIZE = 50   
+        ESPACE_MIN_ENTRE_NEURONE = 2
+        MAX_NODES_PER_COLONNE = INTERFACE_HEIGHT / (MIN_NEURONE_SIZE * 2 + ESPACE_MIN_ENTRE_NEURONE)
+        
+        function getSizeNeurones(nodes_number){
+            var t = (INTERFACE_HEIGHT - (ESPACE_MIN_ENTRE_NEURONE * (nodes_number + 1))) / nodes_number
+            if(t/2 < MIN_NEURONE_SIZE){
+                return MIN_NEURONE_SIZE
+            }
+            if(t/2 > MAX_NEURONE_SIZE){
+                return MAX_NEURONE_SIZE
+            }
+            return t/2
+        }
+
+        function getNumberOfNodesInLayer(layer_number){
+            for(var e in all_clusters){
+                if(all_clusters[e]['layer'] == layer_number){
+                    return parseInt(all_clusters[e]['nodes_in_layer'])
+                }
+            }
+            return -1
+        }
+
+        function drawNeuronesV2(){
+            var rect_layers = new Array(nb_layers)
+            var texts_layers = new Array(nb_layers)
+
+            var x_pos_layer = 60
+            var x_pos_text_layer = 80
+
+            context.fillStyle = 'black'
+            context.font = "20px Arial"
+
+            var sizes_neurones_per_layer = new Array(nb_layers + 2)
+            var number_of_nodes_in_layer = new Array(nb_layers + 2)
+            var nb_colonnes_in_layer = new Array(nb_layers + 2)
+            var nb_lignes_in_layer = new Array(nb_layers + 2)
+            var reste_in_layer = new Array(nb_layers + 2)
+
+            for(var i = 0;i < nb_layers + 2;i++){
+                if(i == 0){
+                    number_of_nodes_in_layer[i] = parseInt(info_network[0]['number_of_inputs'])
+                    var t = getHauteurLargeurLayer(number_of_nodes_in_layer[i])
+                    nb_lignes_in_layer[i] = t[0]
+                    nb_colonnes_in_layer[i] = t[1]
+                    reste_in_layer[i] = t[2]
+                    sizes_neurones_per_layer[i] = getSizeNeurones(nb_colonnes_in_layer[i] * nb_lignes_in_layer[i])
+                    number_of_nodes_in_layer[i] = number_of_nodes_in_layer[i] - reste_in_layer[i]
+
+                }else if(i == (nb_layers + 2) - 1){ //output layer
+                    number_of_nodes_in_layer[i] = parseInt(info_network[0]['number_of_outputs'])
+                    var t = getHauteurLargeurLayer(number_of_nodes_in_layer[i])
+                    nb_lignes_in_layer[i] = t[0]
+                    nb_colonnes_in_layer[i] = t[1]
+                    reste_in_layer[i] = t[2]
+                    sizes_neurones_per_layer[i] = getSizeNeurones(nb_colonnes_in_layer[i] * nb_lignes_in_layer[i])
+                    number_of_nodes_in_layer[i] = number_of_nodes_in_layer[i] - reste_in_layer[i]
+                }else{
+                    number_of_nodes_in_layer[i] = getNumberOfNodesInLayer(i)
+                    var t = getHauteurLargeurLayer(number_of_nodes_in_layer[i])
+                    nb_lignes_in_layer[i] = t[0]
+                    nb_colonnes_in_layer[i] = t[1]
+                    reste_in_layer[i] = t[2]
+                    sizes_neurones_per_layer[i] = getSizeNeurones(nb_colonnes_in_layer[i] * nb_lignes_in_layer[i])
+                    number_of_nodes_in_layer[i] = number_of_nodes_in_layer[i] - reste_in_layer[i]
+                }
+            }
+
+            var arcs_neurones = new Array(nb_layers + 2)
+            var rect_arcs_neurones = new Array(nb_layers + 2)
+
+            var y = 10
+
+            var x_pos_neurone = 60
+
+            for(var i = 0;i < nb_layers + 2;i++){
+
+                var max_x_rect = 0;
+                var max_y_rect = 0
+                var x_pos_neurone_debut = x_pos_neurone
+
+                if(sizes_neurones_per_layer[i] > MIN_NEURONE_SIZE){
+                    arcs_neurones[i] = new Array(1)
+                    arcs_neurones[i][0] = new Array(nb_colonnes_in_layer[i])
+                    var espace = INTERFACE_HEIGHT - (2 * sizes_neurones_per_layer[i] *  number_of_nodes_in_layer[i])
+                    var espace_entre_neurones = espace / (number_of_nodes_in_layer[i] + 1)
+                    y += espace_entre_neurones
+                    var y_save = y              
+                    for (var j = 0; j < number_of_nodes_in_layer[i]; j++){                    
+                        context.beginPath()
+                        arcs_neurones[i][0][j] = arc(x_pos_neurone, y + sizes_neurones_per_layer[i], sizes_neurones_per_layer[i], 0, 2 * Math.PI);
+                        arcs_neurones[i][0][j].draw()
+                        y+= espace_entre_neurones + (sizes_neurones_per_layer[i] * 2)
+                        context.stroke()
+                    }
+                    rect_arcs_neurones[i] = rectangle(x_pos_neurone_debut - sizes_neurones_per_layer[i],y_save, sizes_neurones_per_layer[i] * 2, ((sizes_neurones_per_layer[i] * 2) * number_of_nodes_in_layer[i]) + (espace_entre_neurones * (number_of_nodes_in_layer[i] - 1)), 'black', false) 
+                    //rect_arcs_neurones[i].draw()
+                }else{      
+                    arcs_neurones[i] = new Array(nb_colonnes_in_layer[i])                           
+                    var espace = INTERFACE_HEIGHT - (nb_lignes_in_layer[i] * sizes_neurones_per_layer[i] * 2 + ((ESPACE_MIN_ENTRE_NEURONE * nb_lignes_in_layer[i]) - ESPACE_MIN_ENTRE_NEURONE))
+                    for(var j = 0; j < nb_colonnes_in_layer[i]; j++){
+                        y += espace/2
+                        arcs_neurones[i][j] = new Array(nb_lignes_in_layer[i])
+                        for(var k = 0; k < nb_lignes_in_layer[i]; k++){
+                            context.beginPath() 
+                            arcs_neurones[i][j][k] = arc(x_pos_neurone, y + sizes_neurones_per_layer[i], sizes_neurones_per_layer[i], 0, 2 * Math.PI);
+                            arcs_neurones[i][j][k].draw();
+                            y += ESPACE_MIN_ENTRE_NEURONE + (sizes_neurones_per_layer[i] * 2)
+                            if(max_x_rect < x_pos_neurone + (sizes_neurones_per_layer[i] * 2)){
+                                max_x_rect = x_pos_neurone + (sizes_neurones_per_layer[i] * 2)
+                            }
+                            if(max_y_rect < y + sizes_neurones_per_layer[i]){
+                                max_y_rect = y
+                            }
+                        }
+                        y = 10
+                        x_pos_neurone += ESPACE_MIN_ENTRE_NEURONE + (sizes_neurones_per_layer[i] * 2)
+                    }              
+                    y = 10 + espace/2
+                    rect_arcs_neurones[i] = rectangle(x_pos_neurone_debut - sizes_neurones_per_layer[i], y, max_x_rect - x_pos_neurone_debut, max_y_rect - y, 'black', false) 
+                    //rect_arcs_neurones[i].draw()
+                } 
+
+                y = 10
+                x_pos_neurone += 300
+            }
+
+            return [rect_arcs_neurones, arcs_neurones]
+        }
+
+        function getTextWidth(text, font) {
+            // re-use canvas object for better performance
+            context.font = font;
+            var metrics = context.measureText(text);
+            return metrics.width;
+        }
+
+        function drawClusters(rect_arcs_neurones, coordClusters){
+
+            console.log(rect_arcs_neurones)
+            console.log(coordClusters)
+
+            var clusters_polygons = new Array(coordClusters.length)
+
+            for(var i = 1; i < rect_arcs_neurones.length - 1; i++){
+
+                clusters_polygons[i-1] = new Array(coordClusters[i-1].length) 
+
+                var h1, h2 = 0
+                var y_save1 = rect_arcs_neurones[i].y
+                var y_save2 = rect_arcs_neurones[i+1].y
+
+                for(var j = 0; j < coordClusters[i-1].length; j++){
+
+                    var l1_x_1 = rect_arcs_neurones[i].x + rect_arcs_neurones[i].w
+                    var l1_y_1 = y_save1
+
+                    h1 = (rect_arcs_neurones[i].h * coordClusters[i-1][j][0])
+                    y_save1 += h1
+                    
+                    var l1_x_2 = rect_arcs_neurones[i+1].x
+                    var l1_y_2 = y_save2
+
+                    h2 = (rect_arcs_neurones[i+1].h * coordClusters[i-1][j][0])
+
+                    var l2_x_2 = l1_x_2
+                    var l2_y_2 = y_save2 + h2
+
+                    y_save2 += h2
+
+                    var l3_x_2 = l1_x_1
+                    var l3_y_2 = l1_y_1 + h1
+
+
+                    context.globalAlpha = 0.3;
+                    context.strokeStyle = coordClusters[i-1][j][1];
+                    context.fillStyle = coordClusters[i-1][j][1];
+                    context.beginPath();
+                    context.moveTo(l1_x_1, l1_y_1);
+                    context.lineTo(l1_x_2, l1_y_2);
+                    context.lineTo(l2_x_2 , l2_y_2);
+                    context.lineTo(l3_x_2 , l3_y_2);
+                    context.lineTo(l1_x_1 , l1_y_1);
+                    context.closePath();
+                    context.fill()
+                    context.stroke();
+
+                    var poly_center_x = l1_x_1 + (l2_x_2 - l1_x_1)/2
+
+                    var poly_center_y1 = l1_y_1 + (l2_y_2 - l1_y_1)/2
+                    var poly_center_y2 = l1_y_2 + (l3_y_2 - l1_y_2)/2
+                    var poly_center_y = (poly_center_y1 + poly_center_y2)/2
+
+                    var text_width = getTextWidth("Cluster X", "800 18px Arial")
+
+                    context.globalAlpha = 1;
+                    context.font = "800 18px Arial";
+                    context.fillStyle = "black"
+                    context.fillText("Cluster " + coordClusters[i-1][j][3], poly_center_x - text_width/2, poly_center_y);
+
+                    clusters_polygons[i-1][j] = [l1_x_1, l1_y_1, l1_x_2, l1_y_2, l2_x_2, l2_y_2, l3_x_2, l3_y_2]
+
+                }
+
+            }
+
+            return clusters_polygons
+
+        }
+        
+        // function drawNeurones(){
+        //     var rect_layers = new Array(nb_layers)
+        //     var texts_layers = new Array(nb_layers)
+
+        //     var x_pos_layer = 60
+        //     var x_pos_text_layer = 80
+
+        //     context.fillStyle = 'black'
+        //     context.font = "20px Arial"
+
+        //     var sizes_neurones_per_layer = new Array(nb_layers + 2)
+        //     var number_of_nodes_in_layer = new Array(nb_layers + 2)
+
+        //     for(var i = 0;i < nb_layers + 2;i++){
+        //         if(i == 0){
+        //             number_of_nodes_in_layer[i] = parseInt(info_network[0]['number_of_inputs'])
+        //             sizes_neurones_per_layer[i] = getSizeNeurones(parseInt(info_network[0]['number_of_inputs']))
+        //         }else if(i == (nb_layers + 2) - 1){ //output layer
+        //             number_of_nodes_in_layer[i] = parseInt(info_network[0]['number_of_outputs'])
+        //             sizes_neurones_per_layer[i] = getSizeNeurones(parseInt(info_network[0]['number_of_outputs']))
+        //         }else{
+        //             number_of_nodes_in_layer[i] = getNumberOfNodesInLayer(i)
+        //             sizes_neurones_per_layer[i] = getSizeNeurones(number_of_nodes_in_layer[i])
+        //         }
+        //     }
+            
+        //     var arcs_neurones = new Array(nb_layers + 2)
+        //     var rect_arcs_neurones = new Array(nb_layers + 2)
+
+        //     var y = 10
+
+        //     var x_pos_neurone = 60
+
+        //     for(var i = 0;i < nb_layers + 2;i++){
+
+        //         arcs_neurones[i] = new Array(number_of_nodes_in_layer[i])
+                
+        //         var max_x_rect = 0;
+        //         var x_pos_neurone_debut = x_pos_neurone
+
+        //         if(sizes_neurones_per_layer[i] > MIN_NEURONE_SIZE){
+        //             var espace = INTERFACE_HEIGHT - (2 * sizes_neurones_per_layer[i] *  number_of_nodes_in_layer[i])
+        //             var espace_entre_neurones = espace / (number_of_nodes_in_layer[i] + 1)
+        //             y += espace_entre_neurones
+        //             var y_save = y
+        //             for (var j = 0; j < number_of_nodes_in_layer[i]; j++){
+        //                 context.beginPath()
+        //                 arcs_neurones[i][j] = arc(x_pos_neurone, y + sizes_neurones_per_layer[i], sizes_neurones_per_layer[i], 0, 2 * Math.PI);
+        //                 arcs_neurones[i][j].draw()
+        //                 y+= espace_entre_neurones + (sizes_neurones_per_layer[i] * 2)
+        //                 context.stroke()
+        //             }
+        //             rect_arcs_neurones[i] = rectangle(x_pos_neurone_debut - sizes_neurones_per_layer[i],y_save, sizes_neurones_per_layer[i] * 2, ((sizes_neurones_per_layer[i] * 2) * number_of_nodes_in_layer[i]) + (espace_entre_neurones * (number_of_nodes_in_layer[i] - 1)), 'black', false) 
+        //             //rect_arcs_neurones[i].draw()
+
+        //         }else{
+        //             var neurones_max_par_colonne = INTERFACE_HEIGHT / ((sizes_neurones_per_layer[i] * 2) + ESPACE_MIN_ENTRE_NEURONE)
+        //             var drawed_neurones = 0
+        //             var drawReste = false
+        //             var index_colonne  = 0
+        //             for (var j = 0; j < number_of_nodes_in_layer[i]; j++){
+        //                 if(!drawReste){
+        //                     context.beginPath()             
+        //                     arcs_neurones[i][j] = arc(x_pos_neurone, y + sizes_neurones_per_layer[i], sizes_neurones_per_layer[i], 0, 2 * Math.PI);
+        //                     arcs_neurones[i][j].draw()
+        //                     drawed_neurones++
+        //                     y+= ESPACE_MIN_ENTRE_NEURONE + (sizes_neurones_per_layer[i] * 2)
+        //                     if(y > INTERFACE_HEIGHT){
+        //                         y = 10
+        //                         x_pos_neurone += ESPACE_MIN_ENTRE_NEURONE + (sizes_neurones_per_layer[i] * 2)
+        //                         index_colonne ++
+        //                         if(number_of_nodes_in_layer[i] - (neurones_max_par_colonne  * index_colonne ) < neurones_max_par_colonne ){
+        //                             drawReste = true
+        //                             var neurones_reste = number_of_nodes_in_layer[i] - (neurones_max_par_colonne * index_colonne )
+        //                             var espace = INTERFACE_HEIGHT - (sizes_neurones_per_layer[i] * 2 * neurones_reste) - (ESPACE_MIN_ENTRE_NEURONE * neurones_reste) - ESPACE_MIN_ENTRE_NEURONE
+        //                             y = 10 + (espace/2)
+        //                         }
+        //                     }
+        //                     if(max_x_rect < x_pos_neurone + (sizes_neurones_per_layer[i] * 2)){
+        //                         max_x_rect = x_pos_neurone + (sizes_neurones_per_layer[i] * 2)
+        //                     }
+        //                 }else{
+        //                     context.beginPath()             
+        //                     arcs_neurones[i][j] = arc(x_pos_neurone, y + sizes_neurones_per_layer[i], sizes_neurones_per_layer[i], 0, 2 * Math.PI);
+        //                     arcs_neurones[i][j].draw()
+        //                     drawed_neurones++
+        //                     y+= ESPACE_MIN_ENTRE_NEURONE + (sizes_neurones_per_layer[i] * 2)
+                            
+        //                 }
+        //                 context.stroke()
+        //             }                 
+        //             y = 10
+        //             rect_arcs_neurones[i] = rectangle(x_pos_neurone_debut - sizes_neurones_per_layer[i],y, max_x_rect - x_pos_neurone_debut, INTERFACE_HEIGHT, 'black', false) 
+        //             //rect_arcs_neurones[i].draw()
+        //         } 
+
+        //         y = 10
+        //         x_pos_neurone += 300
+        //     }
+
+        //     return rect_arcs_neurones, arcs_neurones
+
+        // }
+
+        function drawLignesNeurones(arcs_neurones){
+            for(var i = 0;i < arcs_neurones.length - 1; i++){
+                for(var a1 in arcs_neurones[i][arcs_neurones[i].length - 1]){
+                    var arc1 = arcs_neurones[i][arcs_neurones[i].length - 1][a1]
+                    for(var a2 in arcs_neurones[i+1][0]){
+                        var arc2 = arcs_neurones[i+1][0][a2]
+                        context.beginPath();
+                        context.strokeStyle = "#808080";
+                        context.moveTo(arc1.x + arc1.rayon, arc1.y);
+                        context.lineTo(arc2.x - arc2.rayon, arc2.y);
+                        context.stroke();
+                    }
+                }
+            }
+        }
+
+        ESPACE_ENTRE_CLUSTERS = 5
+
+        function calculClusters(clusters){
+            clusters.sort(function(a, b){
+                if(parseInt(a["cluster"]) > parseInt(b["cluster"])){
+                    return 1
+                }
+                if(parseInt(a["cluster"]) < parseInt(b["cluster"])){
+                    return -1
+                }
+                return 0                
+            })
+            //console.log(clusters)
+            var total = 0
+            for(c in clusters){
+                total += parseInt(clusters[c]["count"])
+            }
+            prop = []
+            for(c in clusters){
+                var color;
+                if(parseInt(clusters[c]['class']) == 0){
+                    color = 'red'
+                }else{
+                    color = 'blue'
+                }
+                prop.push([parseInt(clusters[c]["count"]) / total, color, parseInt(clusters[c]['class']), parseInt(clusters[c]["cluster"])])
+            }
+            return prop
+        }
+
+        function arc(x, y, rayon, angleDepart, angleFin) {
+            var arc = {
+                x: x,
+                y: y,
+                rayon: rayon,
+                angleDepart: angleDepart,
+                angleFin: angleFin,
+
+                draw: function () {
+                    context.beginPath();
+                    context.arc(this.x, this.y, this.rayon, this.angleDepart, this.angleFin);
+                    // context.strokeStyle = color;
+                    // context.lineWidth = "2";
+                    context.stroke();
+                    context.closePath();
+                }
+            };
+            return arc;
+        }
+
+        
+
+        function rectangle(rx, ry, w, h, color, fill) {
+            var rec = {
+                x: rx,
+                y: ry,
+                w: w,
+                h: h,
+                f: fill,
+
+                draw: function () {
+                    context.beginPath();
+                    context.strokeStyle = color;
+                    context.lineWidth = "2";
+                    context.rect(this.x, this.y, this.w, this.h);
+                    if(this.f){
+                        context.fillStyle = color;
+                        context.fillRect(this.x, this.y, this.w, this.h);
+                    }
+                    context.stroke();
+                    context.closePath();
+
+                }
+            };
+            return rec;
+        }
+
+        var input_text, output_text;
+
+        var index = 0;
+        var input_class = parseInt(clusterized_values[index]['class'])
+        var signatures = new Array(nb_layers)
+        for(var i = 0;i < nb_layers;i++){
+            signatures[i] = parseInt(clusterized_values[index]['layer'+(i+1)])
+        }
+        var output_class = parseInt(clusterized_values[index]['output'])
+
+        function draw() {
+
+            //layers
+            var rect_layers = new Array(nb_layers)
+            var texts_layers = new Array(nb_layers)
+
+            var x_pos_layer = 60
+            var x_pos_text_layer = 80
+
+            context.fillStyle = 'black'
+            context.font = "20px Arial"
+
+            var t = drawNeuronesV2()
+            var rect_arcs_neurones = t[0]
+            var arcs_neurones = t[1]
+
+            drawLignesNeurones(arcs_neurones)
+
+            var coordClusters = new Array(nb_layers)
+
+            var index = 0;
+            for(var i = 0;i < nb_layers;i++){
+                 coordClusters[i] = calculClusters(all_clusters.slice(index,nb_clusters + index))
+                 index += nb_clusters
+            }
+
+            var clusters_polygons = drawClusters(rect_arcs_neurones, coordClusters)
+
+            // //context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // var rect_clusters = new Array(nb_layers)
+
+            // var x_pos_cluster = 160
+
+            // context.globalAlpha = 0.5;
+
+            // for(var i = 0;i < nb_layers;i++){
+            //     rect_clusters[i] = new Array(nb_clusters)
+            //     y = 10;
+            //     for(var j =0;j < nb_clusters; j++){
+            //         rect_clusters[i][j] = rectangle(x_pos_cluster, y, 200, coordClusters[i][j][0], coordClusters[i][j][1], 'fill')
+            //         rect_clusters[i][j].draw()
+            //         y += coordClusters[i][j][0] + 10
+            //     }
+            //     x_pos_cluster += 300          
+            // }
+
+            // for(var i = 0;i < nb_layers + 1;i++){
+            //     rect_layers[i] = rectangle(x_pos_layer,10, 100, INTERFACE_HEIGHT, 'black', false) 
+            //     texts_layers[i] = context.fillText("layer "+(i+1), x_pos_text_layer, (INTERFACE_HEIGHT/2))
+            //     rect_layers[i].draw()
+            //     x_pos_layer += 300    
+            //     x_pos_text_layer += 300
+            // }
+
+            // //input
+            // input_text2 = context.fillText("INPUT", 0 , 270)
+            // input_text = context.fillText(input_class, 10, 300)
+
+            // x_pos_input = 160
+
+            // for(var i = 0;i < nb_layers;i++){
+            //     context.moveTo(x_pos_input, rect_clusters[i][signatures[i]].y + (rect_clusters[i][signatures[i]].h/2))
+            //     context.lineTo(x_pos_input + 200, rect_clusters[i][signatures[i]].y + (rect_clusters[i][signatures[i]].h/2))
+            //     x_pos_input += 300
+            // }
+            // output_text2 = context.fillText("OUTPUT", 770 , 270)
+            // output_text = context.fillText(output_class, 800, 300)
+            context.stroke()
+            //context.fillText(input_class, 10, 300)
+
+
+        }
+
+        function next(){
+            if(index < clusterized_values.length){
+                index++;
+                var input_class = parseInt(clusterized_values[index]['class'])
+                var signatures = new Array(nb_layers)
+                for(var i = 0;i < nb_layers;i++){
+                    signatures[i] = parseInt(clusterized_values[index]['layer'+(i+1)])
+                }
+                var output_class = parseInt(clusterized_values[index]['output'])
+                document.getElementById("index").innerText = index
+                draw();
+            }
+
+        }
+
+        function prev(){
+            if(index > 0){
+                index--;
+                var input_class = parseInt(clusterized_values[index]['class'])
+                var signatures = new Array(nb_layers)
+                for(var i = 0;i < nb_layers;i++){
+                    signatures[i] = parseInt(clusterized_values[index]['layer'+(i+1)])
+                }
+                var output_class = parseInt(clusterized_values[index]['output'])
+                document.getElementById("index").innerText = index
+                draw();
+            }
+
+        }
+
+  </script>
+</body>
+</html>
