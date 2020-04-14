@@ -1,0 +1,242 @@
+<!doctype html>
+
+<html>
+<head>
+  <meta charset="utf-8">
+
+  <title>Interface web</title>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+        <table>
+            <tr>
+                <th>
+                    <canvas id="canvas" width="1200" height="1000">
+                    </canvas>
+                </th>
+                <th>
+                    <p>ROUGE = 0</p>
+                    <p>BLEU = 1</p>
+                    <button id="gauche" onclick="prev()">prev</button>
+                    <button id="droite" onclick="next()">next</button>
+                    <p id="index">0</p>
+                </th>
+            </tr>
+        </table>
+
+        </tr>
+
+  <script>
+
+        function getNbLayers(all_clusters){
+            max = 0
+            for(var elem in all_clusters){
+                if(max < parseInt(all_clusters[elem].layer)){
+                    max = parseInt(all_clusters[elem].layer)
+                }
+            }
+            return max
+        }
+
+        function getNbClusters(all_clusters){
+            max = 0
+            for(var elem in all_clusters){
+                if(max < parseInt(all_clusters[elem].cluster)){
+                    max = parseInt(all_clusters[elem].cluster)
+                }
+            }
+            return max + 1
+        }
+
+        function getNbClasses(all_clusters){
+            max = 0
+            for(var elem in all_clusters){
+                if(max < parseInt(all_clusters[elem].class)){
+                    max = parseInt(all_clusters[elem].class)
+                }
+            }
+            return max + 1
+        }
+        
+
+        var canvas;
+        var context;
+
+        INTERFACE_HEIGHT = 900
+
+        var all_clusters = {{{ all_clusters }}}
+        var clusterized_values = {{{ clusterized_values }}}
+
+        var nb_layers = getNbLayers(all_clusters)
+        var nb_clusters = getNbClusters(all_clusters)
+        var nb_classes = getNbClasses(all_clusters)
+
+        window.addEventListener('load', function () {
+            canvas = document.querySelector('#canvas');
+            context = canvas.getContext('2d');
+            draw();
+        });
+
+        function calculClusters(clusters, taille, taille_espace){
+            clusters.sort(function(a, b){
+                if(parseInt(a["cluster"]) > parseInt(b["cluster"])){
+                    return 1
+                }
+                if(parseInt(a["cluster"]) < parseInt(b["cluster"])){
+                    return -1
+                }
+                return 0                
+            })
+            //console.log(clusters)
+            var total = 0
+            for(c in clusters){
+                total += parseInt(clusters[c]["count"])
+            }
+            prop = []
+            var espace_restant = taille - (taille_espace * (clusters.length - 1)) 
+            for(c in clusters){
+                var color;
+                if(parseInt(clusters[c]['class']) == 0){
+                    color = 'red'
+                }else{
+                    color = 'blue'
+                }
+                prop.push([(parseInt(clusters[c]["count"]) / total) * espace_restant, color, parseInt(clusters[c]['class'])])
+            }
+            return prop
+        }
+
+        function rectangle(rx, ry, w, h, color, fill) {
+            var rec = {
+                x: rx,
+                y: ry,
+                w: w,
+                h: h,
+                f: fill,
+
+                draw: function () {
+                    context.beginPath();
+                    context.strokeStyle = color;
+                    context.lineWidth = "2";
+                    context.rect(this.x, this.y, this.w, this.h);
+                    if(this.f){
+                        context.fillStyle = color;
+                        context.fillRect(this.x, this.y, this.w, this.h);
+                    }
+                    context.stroke();
+                    context.closePath();
+
+                }
+            };
+            return rec;
+        }
+
+        var input_text, output_text;
+
+        var index = 0;
+        var input_class = parseInt(clusterized_values[index]['class'])
+        var signatures = new Array(nb_layers)
+        for(var i = 0;i < nb_layers;i++){
+            signatures[i] = parseInt(clusterized_values[index]['layer'+(i+1)])
+        }
+        var output_class = parseInt(clusterized_values[index]['output'])
+
+        function draw() {
+
+            var coordClusters = new Array(nb_layers)
+
+            var index = 0;
+            for(var i = 0;i < nb_layers;i++){
+                coordClusters[i] = calculClusters(all_clusters.slice(index,nb_clusters + index), INTERFACE_HEIGHT, 10)
+                index += nb_clusters
+            }
+
+            context.clearRect(0, 0, canvas.width, INTERFACE_HEIGHT);
+
+            var rect_clusters = new Array(nb_layers)
+
+            var x_pos_cluster = 160
+
+            for(var i = 0;i < nb_layers;i++){
+                rect_clusters[i] = new Array(nb_clusters)
+                y = 10;
+                for(var j =0;j < nb_clusters; j++){
+                    rect_clusters[i][j] = rectangle(x_pos_cluster, y, 200, coordClusters[i][j][0], coordClusters[i][j][1], 'fill')
+                    rect_clusters[i][j].draw()
+                    y += coordClusters[i][j][0] + 10
+                }
+                x_pos_cluster += 300          
+            }
+
+            //layers
+            var rect_layers = new Array(nb_layers)
+            var texts_layers = new Array(nb_layers)
+
+            var x_pos_layer = 60
+            var x_pos_text_layer = 80
+
+            context.fillStyle = 'black'
+            context.font = "20px Arial"
+
+            for(var i = 0;i < nb_layers + 1;i++){
+                rect_layers[i] = rectangle(x_pos_layer,10, 100, INTERFACE_HEIGHT, 'black', false) 
+                texts_layers[i] = context.fillText("layer "+(i+1), x_pos_text_layer, (INTERFACE_HEIGHT/2))
+                rect_layers[i].draw()
+                x_pos_layer += 300    
+                x_pos_text_layer += 300
+            }
+
+            //input
+            input_text2 = context.fillText("INPUT", 0 , 270)
+            input_text = context.fillText(input_class, 10, 300)
+
+            x_pos_input = 160
+
+            for(var i = 0;i < nb_layers;i++){
+                context.moveTo(x_pos_input, rect_clusters[i][signatures[i]].y + (rect_clusters[i][signatures[i]].h/2))
+                context.lineTo(x_pos_input + 200, rect_clusters[i][signatures[i]].y + (rect_clusters[i][signatures[i]].h/2))
+                x_pos_input += 300
+            }
+            output_text2 = context.fillText("OUTPUT", 770 , 270)
+            output_text = context.fillText(output_class, 800, 300)
+            context.stroke()
+            //context.fillText(input_class, 10, 300)
+
+
+        }
+
+        function next(){
+            if(index < clusterized_values.length){
+                index++;
+                var input_class = parseInt(clusterized_values[index]['class'])
+                var signatures = new Array(nb_layers)
+                for(var i = 0;i < nb_layers;i++){
+                    signatures[i] = parseInt(clusterized_values[index]['layer'+(i+1)])
+                }
+                var output_class = parseInt(clusterized_values[index]['output'])
+                document.getElementById("index").innerText = index
+                draw();
+            }
+
+        }
+
+        function prev(){
+            if(index > 0){
+                index--;
+                var input_class = parseInt(clusterized_values[index]['class'])
+                var signatures = new Array(nb_layers)
+                for(var i = 0;i < nb_layers;i++){
+                    signatures[i] = parseInt(clusterized_values[index]['layer'+(i+1)])
+                }
+                var output_class = parseInt(clusterized_values[index]['output'])
+                document.getElementById("index").innerText = index
+                draw();
+            }
+
+        }
+
+  </script>
+</body>
+</html>
