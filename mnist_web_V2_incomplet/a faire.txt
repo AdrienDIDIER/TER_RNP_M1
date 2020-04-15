@@ -1,0 +1,20 @@
+faire le générateur de csv en python
+faire le number_of_nodes_in_layer dans le csv
+
+
+
+on a
+une hauteur = 900
+la largeur on s'en fout
+un nombre de neurones à dessiner = 512
+un espace minimum entre eux = 2
+
+Pour nb_neurones = 512
+
+Pour nb_neurones variables, quels sont les variables x et y les plus hautes tel que : 
+	- (x * y) appartient à [nb_neurones - 10, nb_neurones  + 10]
+	- x, y < 75
+
+pour i de 1 à 75:
+	x = pgcd(nb_neurones, i)
+	si  < 75

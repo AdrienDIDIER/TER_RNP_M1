@@ -6,29 +6,72 @@
 
   <title>Interface web</title>
 
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" type="text/css" href="styles.css" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 </head>
 
 <body>
-        <table>
-            <tr>
-                <th>
-                    <canvas id="canvas" width="1200" height="1000">
-                    </canvas>
-                </th>
-                <th>
-                    <p>ROUGE = 0</p>
-                    <p>BLEU = 1</p>
-                    <button id="gauche" onclick="prev()">prev</button>
-                    <button id="droite" onclick="next()">next</button>
-                    <p id="index">0</p>
-                </th>
-            </tr>
+    
+    <canvas id="canvas" 
+        style="z-index: 1;
+        position:absolute;
+        left:400px;
+        top:0px;
+        " width="2000" height="1000">
+    </canvas>
+    <canvas id="clusters_canvas"
+        style="z-index: 2;
+        position:absolute;
+        left:400px;
+        top:0px;
+        " width="2000" height="1000">
+    </canvas>
+
+    <div style = "
+        padding-top: 1200px;
+    ">
+        <p>ROUGE = 0</p>
+        <p>BLEU = 1</p>
+        <button id="gauche" onclick="prev()">prev</button>
+        <button id="droite" onclick="next()">next</button>
+        <p id="index">0</p>
+    </div>
+
+
+    <div id="side_panel" style="top: 0px;
+                position: absolute;
+                left: 0px;">
+        <table class="table table-dark">
+            <thead>
+                <tr>
+                    <th scope="col">Input</th>
+                    <th scope="col">Signature</th>
+                    <th scope="col">Output</th>
+                    <th scope="col">Occurence</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#tab_values}}
+                <tr data-index_number="{{index}}">
+                    <td>{{input_class}}</td>
+                    <td>{{layer1}} {{layer2}}</td>
+                    <td>{{output}}</td>
+                    <td>{{instances}}</td>
+                </tr>
+                {{/tab_values}}
+            </tbody>
         </table>
+    </div>
 
-        </tr>
 
+
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
   <script>
+
+        $('table').on('click', 'tbody tr', function(event) {
+            $(this).addClass('bg-primary').siblings().removeClass('bg-primary');
+            drawSignature($(this).data('index_number'))
+        });
 
         function pgcd(x, y) {
             if ((typeof x !== 'number') || (typeof y !== 'number')) 
@@ -93,65 +136,56 @@
             return max + 1
         }
 
-        //refaire fonction
-        function groupBy(arr, nb_layers){
-            results = []
-            for(var a in arr){
-                var obj = arr[a]
-                if(results.length == 0){
-                    obj.occurence = 1
-                    results.push(obj)
-                }else{
-                    for(var b in results){
-                        var eq = true;
-                        for(var l = 0; l < nb_layers; l++){
-                            if(eq){
-                                var layer_name = 'layer' + l
-                                if(obj[layer_name] != results[b][layer_name]){
-                                    obj.occurence = 1
-                                    results.push(obj)
-                                    eq = false
-                                }
-                            }
-                        }
-                        if(eq){
-                            results[b].occurence += 1                           
-                        }
-                    }
-                }
-            }
-        }
-
         var canvas;
         var context;
+
+        var clusters_canvas;
+        var clusters_context;
 
         INTERFACE_HEIGHT = 900
 
         var all_clusters = {{{ all_clusters }}}
-
-        var clusterized_values = {{{ clusterized_values }}}
-
-        var gb = groupBy(clusterized_values, 2)
-
-        console.log(gb)
-
+        
         var info_network = {{{ info_network }}}
 
         var nb_layers = getNbLayers(all_clusters)
         var nb_clusters = getNbClusters(all_clusters)
         var nb_classes = getNbClasses(all_clusters)
 
+        var clusterized_values = {{{ clusterized_values }}}
+
+        var rect_arcs_neurones;
+        var coordClusters;
+
         window.addEventListener('load', function () {
             canvas = document.querySelector('#canvas');
             context = canvas.getContext('2d');
-            draw();
+            clusters_canvas = document.querySelector('#clusters_canvas');;
+            clusters_context = clusters_canvas.getContext('2d');
+
+            //draw neural network
+            rect_arcs_neurones = draw();
+
+            //draw clusters
+            coordClusters = new Array(nb_layers)
+
+            var index = 0;
+            for(var i = 0;i < nb_layers;i++){
+                coordClusters[i] = calculClusters(all_clusters.slice(index,nb_clusters + index))
+                index += nb_clusters
+            }
+
+            polygons_paths = drawClusters(rect_arcs_neurones, coordClusters)
+
+            onMouseOverFunction();
         });
 
         MIN_NEURONE_SIZE = 5
         MAX_NEURONE_SIZE = 50   
         ESPACE_MIN_ENTRE_NEURONE = 2
         MAX_NODES_PER_COLONNE = INTERFACE_HEIGHT / (MIN_NEURONE_SIZE * 2 + ESPACE_MIN_ENTRE_NEURONE)
-        
+        X_POS_NEURAL_NETWORK = 180
+
         function getSizeNeurones(nodes_number){
             var t = (INTERFACE_HEIGHT - (ESPACE_MIN_ENTRE_NEURONE * (nodes_number + 1))) / nodes_number
             if(t/2 < MIN_NEURONE_SIZE){
@@ -176,8 +210,8 @@
             var rect_layers = new Array(nb_layers)
             var texts_layers = new Array(nb_layers)
 
-            var x_pos_layer = 60
-            var x_pos_text_layer = 80
+            var x_pos_layer = 60 + X_POS_NEURAL_NETWORK
+            var x_pos_text_layer = 80 + X_POS_NEURAL_NETWORK
 
             context.fillStyle = 'black'
             context.font = "20px Arial"
@@ -187,6 +221,9 @@
             var nb_colonnes_in_layer = new Array(nb_layers + 2)
             var nb_lignes_in_layer = new Array(nb_layers + 2)
             var reste_in_layer = new Array(nb_layers + 2)
+
+            var input_class_circle = arc(80, INTERFACE_HEIGHT/2, 50, 0, 2 * Math.PI, 'green', true)
+            input_class_circle.draw()
 
             for(var i = 0;i < nb_layers + 2;i++){
                 if(i == 0){
@@ -222,7 +259,7 @@
 
             var y = 10
 
-            var x_pos_neurone = 60
+            var x_pos_neurone = 60 + X_POS_NEURAL_NETWORK
 
             for(var i = 0;i < nb_layers + 2;i++){
 
@@ -239,10 +276,11 @@
                     var y_save = y              
                     for (var j = 0; j < number_of_nodes_in_layer[i]; j++){                    
                         context.beginPath()
-                        arcs_neurones[i][0][j] = arc(x_pos_neurone, y + sizes_neurones_per_layer[i], sizes_neurones_per_layer[i], 0, 2 * Math.PI);
+                        arcs_neurones[i][0][j] = arc(x_pos_neurone, y + sizes_neurones_per_layer[i], sizes_neurones_per_layer[i], 0, 2 * Math.PI, 'black', false);
                         arcs_neurones[i][0][j].draw()
                         y+= espace_entre_neurones + (sizes_neurones_per_layer[i] * 2)
                         context.stroke()
+                        context.closePath() 
                     }
                     rect_arcs_neurones[i] = rectangle(x_pos_neurone_debut - sizes_neurones_per_layer[i],y_save, sizes_neurones_per_layer[i] * 2, ((sizes_neurones_per_layer[i] * 2) * number_of_nodes_in_layer[i]) + (espace_entre_neurones * (number_of_nodes_in_layer[i] - 1)), 'black', false) 
                     //rect_arcs_neurones[i].draw()
@@ -254,8 +292,9 @@
                         arcs_neurones[i][j] = new Array(nb_lignes_in_layer[i])
                         for(var k = 0; k < nb_lignes_in_layer[i]; k++){
                             context.beginPath() 
-                            arcs_neurones[i][j][k] = arc(x_pos_neurone, y + sizes_neurones_per_layer[i], sizes_neurones_per_layer[i], 0, 2 * Math.PI);
+                            arcs_neurones[i][j][k] = arc(x_pos_neurone, y + sizes_neurones_per_layer[i], sizes_neurones_per_layer[i], 0, 2 * Math.PI, 'black', false);
                             arcs_neurones[i][j][k].draw();
+                            context.closePath() 
                             y += ESPACE_MIN_ENTRE_NEURONE + (sizes_neurones_per_layer[i] * 2)
                             if(max_x_rect < x_pos_neurone + (sizes_neurones_per_layer[i] * 2)){
                                 max_x_rect = x_pos_neurone + (sizes_neurones_per_layer[i] * 2)
@@ -276,6 +315,15 @@
                 x_pos_neurone += 300
             }
 
+            for(var a in arcs_neurones[0][0]){
+                var arc_neurone = arcs_neurones[0][0][a]
+                context.strokeStyle = 'green'
+                context.beginPath()
+                context.moveTo(input_class_circle.x + input_class_circle.rayon, input_class_circle.y)
+                context.lineTo(arc_neurone.x - arc_neurone.rayon, arc_neurone.y)
+                context.closePath()
+                context.stroke()
+            }
             return [rect_arcs_neurones, arcs_neurones]
         }
 
@@ -286,55 +334,100 @@
             return metrics.width;
         }
 
+        var TAILLE_MIN_SIGNATURE = 10
+
         function drawClusters(rect_arcs_neurones, coordClusters){
 
-            console.log(rect_arcs_neurones)
-            console.log(coordClusters)
+            var input_class_text_width = getTextWidth("Input class", "bold 16px Arial")
 
-            var clusters_polygons = new Array(coordClusters.length)
+            clusters_context.globalAlpha = 1;
+            clusters_context.font = "bold 16px Arial";
+            clusters_context.fillStyle = "white"
+            clusters_context.fillText(''+"Input class", 80 - input_class_text_width/2, INTERFACE_HEIGHT/2 - 4);
+            clusters_context.fillText(''+input_signature.input_class, 75, INTERFACE_HEIGHT/2 + 20);
+
+            var output_class_color
+
+            var polygons_paths = new Array(coordClusters.length)
+            var jauge_paths = new Array(coordClusters.length)
 
             for(var i = 1; i < rect_arcs_neurones.length - 1; i++){
 
-                clusters_polygons[i-1] = new Array(coordClusters[i-1].length) 
+                polygons_paths[i-1] = new Array(coordClusters[i-1].length) 
 
                 var h1, h2 = 0
                 var y_save1 = rect_arcs_neurones[i].y
                 var y_save2 = rect_arcs_neurones[i+1].y
+                var l1_x_1, l1_y_1, l1_x_2, l1_y_2, l2_x_2, l2_y_2, l3_x_2, l3_y_2
 
                 for(var j = 0; j < coordClusters[i-1].length; j++){
 
-                    var l1_x_1 = rect_arcs_neurones[i].x + rect_arcs_neurones[i].w
-                    var l1_y_1 = y_save1
+                    l1_x_1 = rect_arcs_neurones[i].x + rect_arcs_neurones[i].w
+                    l1_y_1 = y_save1
 
                     h1 = (rect_arcs_neurones[i].h * coordClusters[i-1][j][0])
                     y_save1 += h1
                     
-                    var l1_x_2 = rect_arcs_neurones[i+1].x
-                    var l1_y_2 = y_save2
+                    l1_x_2 = rect_arcs_neurones[i+1].x
+                    l1_y_2 = y_save2
 
                     h2 = (rect_arcs_neurones[i+1].h * coordClusters[i-1][j][0])
 
-                    var l2_x_2 = l1_x_2
-                    var l2_y_2 = y_save2 + h2
+                    l2_x_2 = l1_x_2
+                    l2_y_2 = y_save2 + h2
 
                     y_save2 += h2
 
-                    var l3_x_2 = l1_x_1
-                    var l3_y_2 = l1_y_1 + h1
+                    l3_x_2 = l1_x_1
+                    l3_y_2 = l1_y_1 + h1
 
+                    clusters_context.strokeStyle = coordClusters[i-1][j][1];
+                    clusters_context.fillStyle = coordClusters[i-1][j][1];
 
-                    context.globalAlpha = 0.3;
-                    context.strokeStyle = coordClusters[i-1][j][1];
-                    context.fillStyle = coordClusters[i-1][j][1];
-                    context.beginPath();
-                    context.moveTo(l1_x_1, l1_y_1);
-                    context.lineTo(l1_x_2, l1_y_2);
-                    context.lineTo(l2_x_2 , l2_y_2);
-                    context.lineTo(l3_x_2 , l3_y_2);
-                    context.lineTo(l1_x_1 , l1_y_1);
-                    context.closePath();
-                    context.fill()
-                    context.stroke();
+                    let path = new Path2D()
+                    clusters_context.beginPath();
+                    path.moveTo(l1_x_1, l1_y_1);
+                    path.lineTo(l1_x_2, l1_y_2);
+                    path.lineTo(l2_x_2 , l2_y_2);
+                    path.lineTo(l3_x_2 , l3_y_2);
+                    path.lineTo(l1_x_1 , l1_y_1);
+                    clusters_context.globalAlpha = 1;
+                    clusters_context.strokeStyle = 'black'
+                    clusters_context.stroke(path);    
+                    clusters_context.globalAlpha = 0.3;
+                    clusters_context.fill(path)
+                    path.closePath();
+                    clusters_context.closePath()
+
+                    if(input_signature['layer'+i+'_cluster'] == j){
+
+                        output_class_color = coordClusters[i-1][j][1]
+
+                        h_jauge1 = h1 * (input_signature['instances'] / coordClusters[i-1][j][4])
+                        if(h_jauge1 < TAILLE_MIN_SIGNATURE){
+                            h_jauge1 = TAILLE_MIN_SIGNATURE
+                        }
+                        h_jauge2 = h2 * (input_signature['instances'] / coordClusters[i-1][j][4])
+                        if(h_jauge2 < TAILLE_MIN_SIGNATURE){
+                            h_jauge2 = TAILLE_MIN_SIGNATURE
+                        }
+                        let jauge_path = new Path2D()
+                        clusters_context.beginPath();
+                        jauge_path.moveTo(l3_x_2 , l3_y_2)
+                        var save_y1 = l3_y_2 - h_jauge1
+                        jauge_path.lineTo(l3_x_2 , save_y1)
+                        var save_y2 = l2_y_2 - h_jauge2
+                        jauge_path.lineTo(l1_x_2 , save_y2)
+                        jauge_path.lineTo(l1_x_2 , l2_y_2)
+                        jauge_path.lineTo(l3_x_2 , l3_y_2)               
+                        clusters_context.fillStyle = 'green'
+                        clusters_context.globalAlpha = 1;
+                        clusters_context.fill(jauge_path)
+                        jauge_path.closePath();
+                        clusters_context.closePath()
+
+                        jauge_paths[i-1] = jauge_path
+                    }
 
                     var poly_center_x = l1_x_1 + (l2_x_2 - l1_x_1)/2
 
@@ -344,124 +437,33 @@
 
                     var text_width = getTextWidth("Cluster X", "800 18px Arial")
 
-                    context.globalAlpha = 1;
-                    context.font = "800 18px Arial";
-                    context.fillStyle = "black"
-                    context.fillText("Cluster " + coordClusters[i-1][j][3], poly_center_x - text_width/2, poly_center_y);
+                    clusters_context.globalAlpha = 1;
+                    clusters_context.font = "800 18px Arial";
+                    clusters_context.fillStyle = "black"
+                    clusters_context.fillText("Cluster " + coordClusters[i-1][j][3], poly_center_x - text_width/2, poly_center_y);
 
-                    clusters_polygons[i-1][j] = [l1_x_1, l1_y_1, l1_x_2, l1_y_2, l2_x_2, l2_y_2, l3_x_2, l3_y_2]
+                    polygons_paths[i-1][j] = path
 
                 }
 
             }
 
-            return clusters_polygons
+            clusters_context.globalAlpha = 0.7;
+            var output_class_circle = arc(rect_arcs_neurones[rect_arcs_neurones.length - 1].x + rect_arcs_neurones[rect_arcs_neurones.length - 1].w + 75, INTERFACE_HEIGHT/2, 50, 0, 2 * Math.PI, output_class_color, true)
+            output_class_circle.draw()
+
+            var output_class_text_width = getTextWidth("Output class", "bold 16px Arial")
+
+            clusters_context.globalAlpha = 1;
+            clusters_context.font = "bold 16px Arial";
+            clusters_context.fillStyle = "white"
+            clusters_context.fillText(''+"Output class", rect_arcs_neurones[rect_arcs_neurones.length - 1].x + rect_arcs_neurones[rect_arcs_neurones.length - 1].w + 27, INTERFACE_HEIGHT/2 - 4);
+            clusters_context.fillText(''+input_signature.output_class, rect_arcs_neurones[rect_arcs_neurones.length - 1].x + rect_arcs_neurones[rect_arcs_neurones.length - 1].w + 72, INTERFACE_HEIGHT/2 + 20);
+
+
+            return polygons_paths
 
         }
-        
-        // function drawNeurones(){
-        //     var rect_layers = new Array(nb_layers)
-        //     var texts_layers = new Array(nb_layers)
-
-        //     var x_pos_layer = 60
-        //     var x_pos_text_layer = 80
-
-        //     context.fillStyle = 'black'
-        //     context.font = "20px Arial"
-
-        //     var sizes_neurones_per_layer = new Array(nb_layers + 2)
-        //     var number_of_nodes_in_layer = new Array(nb_layers + 2)
-
-        //     for(var i = 0;i < nb_layers + 2;i++){
-        //         if(i == 0){
-        //             number_of_nodes_in_layer[i] = parseInt(info_network[0]['number_of_inputs'])
-        //             sizes_neurones_per_layer[i] = getSizeNeurones(parseInt(info_network[0]['number_of_inputs']))
-        //         }else if(i == (nb_layers + 2) - 1){ //output layer
-        //             number_of_nodes_in_layer[i] = parseInt(info_network[0]['number_of_outputs'])
-        //             sizes_neurones_per_layer[i] = getSizeNeurones(parseInt(info_network[0]['number_of_outputs']))
-        //         }else{
-        //             number_of_nodes_in_layer[i] = getNumberOfNodesInLayer(i)
-        //             sizes_neurones_per_layer[i] = getSizeNeurones(number_of_nodes_in_layer[i])
-        //         }
-        //     }
-            
-        //     var arcs_neurones = new Array(nb_layers + 2)
-        //     var rect_arcs_neurones = new Array(nb_layers + 2)
-
-        //     var y = 10
-
-        //     var x_pos_neurone = 60
-
-        //     for(var i = 0;i < nb_layers + 2;i++){
-
-        //         arcs_neurones[i] = new Array(number_of_nodes_in_layer[i])
-                
-        //         var max_x_rect = 0;
-        //         var x_pos_neurone_debut = x_pos_neurone
-
-        //         if(sizes_neurones_per_layer[i] > MIN_NEURONE_SIZE){
-        //             var espace = INTERFACE_HEIGHT - (2 * sizes_neurones_per_layer[i] *  number_of_nodes_in_layer[i])
-        //             var espace_entre_neurones = espace / (number_of_nodes_in_layer[i] + 1)
-        //             y += espace_entre_neurones
-        //             var y_save = y
-        //             for (var j = 0; j < number_of_nodes_in_layer[i]; j++){
-        //                 context.beginPath()
-        //                 arcs_neurones[i][j] = arc(x_pos_neurone, y + sizes_neurones_per_layer[i], sizes_neurones_per_layer[i], 0, 2 * Math.PI);
-        //                 arcs_neurones[i][j].draw()
-        //                 y+= espace_entre_neurones + (sizes_neurones_per_layer[i] * 2)
-        //                 context.stroke()
-        //             }
-        //             rect_arcs_neurones[i] = rectangle(x_pos_neurone_debut - sizes_neurones_per_layer[i],y_save, sizes_neurones_per_layer[i] * 2, ((sizes_neurones_per_layer[i] * 2) * number_of_nodes_in_layer[i]) + (espace_entre_neurones * (number_of_nodes_in_layer[i] - 1)), 'black', false) 
-        //             //rect_arcs_neurones[i].draw()
-
-        //         }else{
-        //             var neurones_max_par_colonne = INTERFACE_HEIGHT / ((sizes_neurones_per_layer[i] * 2) + ESPACE_MIN_ENTRE_NEURONE)
-        //             var drawed_neurones = 0
-        //             var drawReste = false
-        //             var index_colonne  = 0
-        //             for (var j = 0; j < number_of_nodes_in_layer[i]; j++){
-        //                 if(!drawReste){
-        //                     context.beginPath()             
-        //                     arcs_neurones[i][j] = arc(x_pos_neurone, y + sizes_neurones_per_layer[i], sizes_neurones_per_layer[i], 0, 2 * Math.PI);
-        //                     arcs_neurones[i][j].draw()
-        //                     drawed_neurones++
-        //                     y+= ESPACE_MIN_ENTRE_NEURONE + (sizes_neurones_per_layer[i] * 2)
-        //                     if(y > INTERFACE_HEIGHT){
-        //                         y = 10
-        //                         x_pos_neurone += ESPACE_MIN_ENTRE_NEURONE + (sizes_neurones_per_layer[i] * 2)
-        //                         index_colonne ++
-        //                         if(number_of_nodes_in_layer[i] - (neurones_max_par_colonne  * index_colonne ) < neurones_max_par_colonne ){
-        //                             drawReste = true
-        //                             var neurones_reste = number_of_nodes_in_layer[i] - (neurones_max_par_colonne * index_colonne )
-        //                             var espace = INTERFACE_HEIGHT - (sizes_neurones_per_layer[i] * 2 * neurones_reste) - (ESPACE_MIN_ENTRE_NEURONE * neurones_reste) - ESPACE_MIN_ENTRE_NEURONE
-        //                             y = 10 + (espace/2)
-        //                         }
-        //                     }
-        //                     if(max_x_rect < x_pos_neurone + (sizes_neurones_per_layer[i] * 2)){
-        //                         max_x_rect = x_pos_neurone + (sizes_neurones_per_layer[i] * 2)
-        //                     }
-        //                 }else{
-        //                     context.beginPath()             
-        //                     arcs_neurones[i][j] = arc(x_pos_neurone, y + sizes_neurones_per_layer[i], sizes_neurones_per_layer[i], 0, 2 * Math.PI);
-        //                     arcs_neurones[i][j].draw()
-        //                     drawed_neurones++
-        //                     y+= ESPACE_MIN_ENTRE_NEURONE + (sizes_neurones_per_layer[i] * 2)
-                            
-        //                 }
-        //                 context.stroke()
-        //             }                 
-        //             y = 10
-        //             rect_arcs_neurones[i] = rectangle(x_pos_neurone_debut - sizes_neurones_per_layer[i],y, max_x_rect - x_pos_neurone_debut, INTERFACE_HEIGHT, 'black', false) 
-        //             //rect_arcs_neurones[i].draw()
-        //         } 
-
-        //         y = 10
-        //         x_pos_neurone += 300
-        //     }
-
-        //     return rect_arcs_neurones, arcs_neurones
-
-        // }
 
         function drawLignesNeurones(arcs_neurones){
             for(var i = 0;i < arcs_neurones.length - 1; i++){
@@ -470,10 +472,15 @@
                     for(var a2 in arcs_neurones[i+1][0]){
                         var arc2 = arcs_neurones[i+1][0][a2]
                         context.beginPath();
-                        context.strokeStyle = "#808080";
+                        if(i == 0){
+                            context.strokeStyle = "green"; 
+                        }else{
+                            context.strokeStyle = "#808080";
+                        }
                         context.moveTo(arc1.x + arc1.rayon, arc1.y);
                         context.lineTo(arc2.x - arc2.rayon, arc2.y);
                         context.stroke();
+                        context.closePath()
                     }
                 }
             }
@@ -504,24 +511,30 @@
                 }else{
                     color = 'blue'
                 }
-                prop.push([parseInt(clusters[c]["count"]) / total, color, parseInt(clusters[c]['class']), parseInt(clusters[c]["cluster"])])
+                prop.push([parseInt(clusters[c]["count"]) / total, color, parseInt(clusters[c]['class']), parseInt(clusters[c]["cluster"]), parseInt(clusters[c]["count"])])
             }
             return prop
         }
 
-        function arc(x, y, rayon, angleDepart, angleFin) {
+        function arc(x, y, rayon, angleDepart, angleFin, color, fill) {
             var arc = {
                 x: x,
                 y: y,
                 rayon: rayon,
                 angleDepart: angleDepart,
                 angleFin: angleFin,
+                color : color,
+                f: fill,
 
                 draw: function () {
                     context.beginPath();
                     context.arc(this.x, this.y, this.rayon, this.angleDepart, this.angleFin);
-                    // context.strokeStyle = color;
+                    context.strokeStyle = this.color;
                     // context.lineWidth = "2";
+                    if(this.f){
+                        context.fillStyle = color;
+                        context.fill()
+                    }
                     context.stroke();
                     context.closePath();
                 }
@@ -558,13 +571,18 @@
 
         var input_text, output_text;
 
-        var index = 0;
-        var input_class = parseInt(clusterized_values[index]['class'])
-        var signatures = new Array(nb_layers)
-        for(var i = 0;i < nb_layers;i++){
-            signatures[i] = parseInt(clusterized_values[index]['layer'+(i+1)])
+        var signature_index = 0;
+        var input_signature = new Object();
+        input_signature.input_class = parseInt(clusterized_values[signature_index]['input_class'])
+        for(var i = 1;i <= nb_layers;i++){
+            input_signature['layer'+i+'_cluster'] = parseInt(clusterized_values[signature_index]['layer'+i])
         }
-        var output_class = parseInt(clusterized_values[index]['output'])
+        input_signature.output_class = parseInt(clusterized_values[signature_index]['output'])
+        input_signature.instances = clusterized_values[signature_index]['instances']
+        document.getElementById("index").innerText = signature_index
+
+
+        var polygons_paths, example_path
 
         function draw() {
 
@@ -576,7 +594,11 @@
             var x_pos_text_layer = 80
 
             context.fillStyle = 'black'
+            context.strokeStyle = 'black'
             context.font = "20px Arial"
+
+            
+            context.clearRect(0, 0, canvas.width, canvas.height);
 
             var t = drawNeuronesV2()
             var rect_arcs_neurones = t[0]
@@ -586,90 +608,74 @@
 
             var coordClusters = new Array(nb_layers)
 
-            var index = 0;
-            for(var i = 0;i < nb_layers;i++){
-                 coordClusters[i] = calculClusters(all_clusters.slice(index,nb_clusters + index))
-                 index += nb_clusters
-            }
-
-            var clusters_polygons = drawClusters(rect_arcs_neurones, coordClusters)
-
-            // //context.clearRect(0, 0, canvas.width, canvas.height);
-
-            // var rect_clusters = new Array(nb_layers)
-
-            // var x_pos_cluster = 160
-
-            // context.globalAlpha = 0.5;
-
-            // for(var i = 0;i < nb_layers;i++){
-            //     rect_clusters[i] = new Array(nb_clusters)
-            //     y = 10;
-            //     for(var j =0;j < nb_clusters; j++){
-            //         rect_clusters[i][j] = rectangle(x_pos_cluster, y, 200, coordClusters[i][j][0], coordClusters[i][j][1], 'fill')
-            //         rect_clusters[i][j].draw()
-            //         y += coordClusters[i][j][0] + 10
-            //     }
-            //     x_pos_cluster += 300          
-            // }
-
-            // for(var i = 0;i < nb_layers + 1;i++){
-            //     rect_layers[i] = rectangle(x_pos_layer,10, 100, INTERFACE_HEIGHT, 'black', false) 
-            //     texts_layers[i] = context.fillText("layer "+(i+1), x_pos_text_layer, (INTERFACE_HEIGHT/2))
-            //     rect_layers[i].draw()
-            //     x_pos_layer += 300    
-            //     x_pos_text_layer += 300
-            // }
-
-            // //input
-            // input_text2 = context.fillText("INPUT", 0 , 270)
-            // input_text = context.fillText(input_class, 10, 300)
-
-            // x_pos_input = 160
-
-            // for(var i = 0;i < nb_layers;i++){
-            //     context.moveTo(x_pos_input, rect_clusters[i][signatures[i]].y + (rect_clusters[i][signatures[i]].h/2))
-            //     context.lineTo(x_pos_input + 200, rect_clusters[i][signatures[i]].y + (rect_clusters[i][signatures[i]].h/2))
-            //     x_pos_input += 300
-            // }
-            // output_text2 = context.fillText("OUTPUT", 770 , 270)
-            // output_text = context.fillText(output_class, 800, 300)
             context.stroke()
-            //context.fillText(input_class, 10, 300)
 
-
+            return rect_arcs_neurones
         }
 
-        function next(){
-            if(index < clusterized_values.length){
-                index++;
-                var input_class = parseInt(clusterized_values[index]['class'])
-                var signatures = new Array(nb_layers)
-                for(var i = 0;i < nb_layers;i++){
-                    signatures[i] = parseInt(clusterized_values[index]['layer'+(i+1)])
-                }
-                var output_class = parseInt(clusterized_values[index]['output'])
-                document.getElementById("index").innerText = index
-                draw();
-            }
 
+
+        function onMouseOverFunction(){
+
+            var highlighted_cluster = false
+            var current_highlighted_cluster_i = -1,
+                current_highlighted_cluster_j = -1;
+
+            clusters_canvas.onmousemove = function(e) {
+
+                // important: correct mouse position:
+                var rect = this.getBoundingClientRect(),
+                    x = e.clientX - rect.left,
+                    y = e.clientY - rect.top;
+
+                var no_mouse_in_clusters = true
+
+                for(var i = 0;i < polygons_paths.length; i++){
+                    for(var j = 0;j < polygons_paths[i].length; j++){
+                        if(clusters_context.isPointInPath(polygons_paths[i][j], x, y)){
+                            if(current_highlighted_cluster_i == i & current_highlighted_cluster_j == j){
+                                no_mouse_in_clusters = false
+                                continue
+                            }
+                            let path = polygons_paths[i][j]
+                            clusters_context.clearRect(0, 0, clusters_canvas.width, clusters_canvas.height); // for demo
+                            drawClusters(rect_arcs_neurones, coordClusters)
+                            clusters_context.globalAlpha = 0.7
+                            clusters_context.fillStyle = 'blue'
+                            clusters_context.stroke(path)
+                            clusters_context.fill(path)
+                            current_highlighted_cluster_i = i
+                            current_highlighted_cluster_j = j
+                            no_mouse_in_clusters = false
+                            highlighted_cluster = true
+                        }
+                    }
+                }
+                if(highlighted_cluster & no_mouse_in_clusters){
+                    clusters_context.clearRect(0, 0, clusters_canvas.width, clusters_canvas.height); // for demo
+                    drawClusters(rect_arcs_neurones, coordClusters)
+                    current_highlighted_cluster_i = -1
+                    current_highlighted_cluster_j = -1
+                    highlighted_cluster = false
+                }
+            }
         }
 
-        function prev(){
-            if(index > 0){
-                index--;
-                var input_class = parseInt(clusterized_values[index]['class'])
-                var signatures = new Array(nb_layers)
-                for(var i = 0;i < nb_layers;i++){
-                    signatures[i] = parseInt(clusterized_values[index]['layer'+(i+1)])
-                }
-                var output_class = parseInt(clusterized_values[index]['output'])
-                document.getElementById("index").innerText = index
-                draw();
+        function drawSignature(signature_index){
+            clusters_context.clearRect(0, 0, clusters_canvas.width, clusters_canvas.height); // for demo
+            input_signature = new Object();
+            input_signature.input_class = parseInt(clusterized_values[signature_index]['input_class'])
+            for(var i = 1;i <= nb_layers;i++){
+                input_signature['layer'+i+'_cluster'] = parseInt(clusterized_values[signature_index]['layer'+i])
             }
-
+            input_signature.output_class = parseInt(clusterized_values[signature_index]['output'])
+            input_signature.instances = clusterized_values[signature_index]['instances']
+            document.getElementById("index").innerText = signature_index
+            drawClusters(rect_arcs_neurones, coordClusters)
         }
 
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 </body>
 </html>
