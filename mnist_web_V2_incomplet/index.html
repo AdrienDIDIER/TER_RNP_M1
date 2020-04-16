@@ -8,6 +8,7 @@
 
   <link rel="stylesheet" type="text/css" href="styles.css" />
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.css">
 </head>
 
 <body>
@@ -15,44 +16,34 @@
     <canvas id="canvas" 
         style="z-index: 1;
         position:absolute;
-        left:400px;
+        left:420px;
         top:0px;
-        " width="2000" height="1000">
+        " width="2000" height="1920">
     </canvas>
     <canvas id="clusters_canvas"
         style="z-index: 2;
         position:absolute;
-        left:400px;
+        left:420px;
         top:0px;
-        " width="2000" height="1000">
+        " width="2000" height="1920">
     </canvas>
-
-    <div style = "
-        padding-top: 1200px;
-    ">
-        <p>ROUGE = 0</p>
-        <p>BLEU = 1</p>
-        <button id="gauche" onclick="prev()">prev</button>
-        <button id="droite" onclick="next()">next</button>
-        <p id="index">0</p>
-    </div>
-
-
     <div id="side_panel" style="top: 0px;
+                width: 420px;
                 position: absolute;
                 left: 0px;">
-        <table class="table table-dark">
+        <table id="dtVerticalScrollExample" class="table table-dark table-striped table-bordered table-sm" cellspacing="0"
+        width="100%" height="100%">
             <thead>
                 <tr>
-                    <th scope="col">Input</th>
-                    <th scope="col">Signature</th>
-                    <th scope="col">Output</th>
-                    <th scope="col">Occurence</th>
+                    <th class="th-sm" scope="col">Input</th>
+                    <th class="th-sm" scope="col">Signature</th>
+                    <th class="th-sm" scope="col">Output</th>
+                    <th class="th-sm" scope="col">Occurence</th>
                 </tr>
             </thead>
             <tbody>
                 {{#tab_values}}
-                <tr data-index_number="{{index}}">
+                <tr id="dark_row" data-index_number="{{index}}">
                     <td>{{input_class}}</td>
                     <td>{{layer1}} {{layer2}}</td>
                     <td>{{output}}</td>
@@ -66,10 +57,53 @@
 
 
   <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+  <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.js"></script>
+
   <script>
+
+        var window_height = $(window).height();
+        var windows_width = $(window).width();
+        var INTERFACE_HEIGHT = window_height - 10
+
+        var TABLE_WIDTH = 420
+        var INTERFACE_WIDTH =  windows_width - TABLE_WIDTH
+
+        window_height = $(window).height();
+
+        function resizeCanvas(window_height){           
+            INTERFACE_HEIGHT = window_height - 10
+            canvas.height = window_height
+            clusters_canvas.height = window_height
+            MAX_NODES_PER_COLONNE = INTERFACE_HEIGHT / (MIN_NEURONE_SIZE * 2 + ESPACE_MIN_ENTRE_NEURONE)
+            rect_arcs_neurones = draw();
+            polygons_paths = drawClusters(rect_arcs_neurones, coordClusters)
+
+        }
+
+        $( window ).resize(function() {
+            window_height = $(window).height();
+            $('#side_panel').height(window_height)
+            resizeCanvas(window_height)
+        });
+
+        // $('#canvas').height(INTERFACE_HEIGHT)
+        // $('#clusters_canvas').height(INTERFACE_HEIGHT)
+
+        $(document).ready(function () {
+            $('#dtVerticalScrollExample').DataTable({
+                "scrollY": "100vh",
+                "scrollCollapse": true,
+                "paging":         false,
+                "searching": false,
+                "stripeClasses": [ 'strip1', 'strip2', 'strip3' ],
+                "bInfo" : false
+            });
+            $('.dataTables_length').addClass('bs-select');
+        });
 
         $('table').on('click', 'tbody tr', function(event) {
             $(this).addClass('bg-primary').siblings().removeClass('bg-primary');
+            $(this).removeAttr('id').siblings().attr('id', 'dark_row')
             drawSignature($(this).data('index_number'))
         });
 
@@ -141,8 +175,6 @@
 
         var clusters_canvas;
         var clusters_context;
-
-        INTERFACE_HEIGHT = 900
 
         var all_clusters = {{{ all_clusters }}}
         
@@ -579,7 +611,7 @@
         }
         input_signature.output_class = parseInt(clusterized_values[signature_index]['output'])
         input_signature.instances = clusterized_values[signature_index]['instances']
-        document.getElementById("index").innerText = signature_index
+        //document.getElementById("index").innerText = signature_index
 
 
         var polygons_paths, example_path
@@ -670,7 +702,7 @@
             }
             input_signature.output_class = parseInt(clusterized_values[signature_index]['output'])
             input_signature.instances = clusterized_values[signature_index]['instances']
-            document.getElementById("index").innerText = signature_index
+            //document.getElementById("index").innerText = signature_index
             drawClusters(rect_arcs_neurones, coordClusters)
         }
 
