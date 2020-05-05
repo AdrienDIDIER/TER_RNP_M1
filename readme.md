@@ -1,4 +1,4 @@
-# TITLE
+# Que se passe-t-il dans mon réseau de neurones profond ?
  
 ## Auteurs
  
@@ -6,8 +6,15 @@ DIDIER Adrien - MARTIN Loïc - PORTAL Pierre - TROUCHE Aurélien
  
 ## Description (une brève description de ce que fait l'application)
  
-TITLE est un programme python permettant de réaliser une étude des différentes signatures de modèles obtenus pour caractériser les chemins suivis dans un réseau.
-De plus s’y ajoute une interface web afin de visualiser les résultats.
+Ceci est une librairie permettant de faciliter l'analyse des signatures des fonctions d'activation des neurones dans une réseau de neurones profond. 
+
+Elle inclue :
+- des fonctions Python de sauvegarde, de discrétisation et de clusterisation des valeurs des fonctions d'activation des données d'apprentissage et des données à prédire
+- une interface web utilisant Node/HTML/Javascript permettant de visualiser les données générées
+
+Cette librairie est le fruit d'un projet de TER en Master 1 Informatique à l'université de Montpellier, elle est censée fonctionner pour tout type de données en entrée. 
+
+Nous avons essentiellement utilisé la base de données MNIST comme jeu de données et nous fournissons quelques fonctions permettant de faciliter l'utilisation de celle-ci avec notre librairie.
  
  
  
@@ -16,9 +23,21 @@ De plus s’y ajoute une interface web afin de visualiser les résultats.
 Programme python
  
 Programme js avec node
+
+Création du modèle
+
+Apprentissage du modèle
+
+Extraction des signatures
+
+Discrétisation des signatures
+
+Clusterisation des signatures
+
+Affichage des résultats
  
  
-## Versions (mettre celle de l’appli web)
+## Dépendances (mettre celle de l’appli web)
  
  - il doit contenir les numéros de version des logiciels que vous utilisez; Par exemple si j'utilise Python 2.7 et que vous utilisez Python 3.7 il est possible que votre programme ne fonctionne pas et il me faut pouvoir charger la bonne librairie. Idem si vous utilisez des navigateurs : préciser le ou lesquels ainsi que la version
  
