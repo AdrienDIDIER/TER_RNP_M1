@@ -59,11 +59,17 @@ Il est nécessaire que le fichier clusterized_values.csv ait le même nombre de 
 ## Dépendances
  
 Spyder 3.3.6
+
 Python 3.7.4
+
 Pandas 0.25.1
+
 Scikit-learn 0.21.3
+
 Tensorflow 1.15.0
+
 Keras 2.2.4
+
 Numpy 1.16.5
  
 Google Chrome 81 (81.0.4044.129)
