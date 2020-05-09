@@ -9,7 +9,9 @@ DIDIER Adrien - MARTIN Loïc - PORTAL Pierre - TROUCHE Aurélien
 Ceci est une librairie permettant de faciliter l'analyse des signatures des fonctions d'activation des neurones dans une réseau de neurones profond. 
 
 Elle inclut :
+
 - des fonctions Python de sauvegarde, de discrétisation et de clusterisation des valeurs des fonctions d'activation des données d'apprentissage et des données à prédire
+
 - une interface web utilisant Node/HTML/Javascript permettant de visualiser les données générées
 
 Cette librairie est le fruit d'un projet de TER en Master 1 Informatique à l'université de Montpellier, elle est censée fonctionner pour tout type de données en entrée. 
@@ -38,10 +40,15 @@ Affichage des résultats
  
  
 Pour faire fonctionner l'interface :
+
 	- Installer node
+	
 	- Accéder au dossier mnist_web avec le terminal
+	
 	- Executer les commandes "npm install express", "npm install fs", "npm install neat-csv", "npm install mustache" (installation des packages nécessaires)
+	
 	- Executer la commande "node index.js"
+	
 	- Accéder à l'URL "http://localhost:2400/"
 
 Pour adapter l'interface :
