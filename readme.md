@@ -78,7 +78,7 @@ MANQUE LA PARTIE WEB
  
 ## Démonstration
  
- - si vous avez des vidéos sur youtube -> mettre un lien vers la vidéo pour que les personnes puissent avoir une démonstration. Attention une vidéo est plus facile qu'une démonstration en ligne via un serveur car ce dernier ne pourra pas être utilisé.
+si vous avez des vidéos sur youtube -> mettre un lien vers la vidéo pour que les personnes puissent avoir une démonstration. Attention une vidéo est plus facile qu'une démonstration en ligne via un serveur car ce dernier ne pourra pas être utilisé.
  
  
 ## Rapport
