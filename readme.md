@@ -4,11 +4,11 @@
  
 DIDIER Adrien - MARTIN Loïc - PORTAL Pierre - TROUCHE Aurélien
  
-## Description (une brève description de ce que fait l'application)
+## Description
  
 Ceci est une librairie permettant de faciliter l'analyse des signatures des fonctions d'activation des neurones dans une réseau de neurones profond. 
 
-Elle inclue :
+Elle inclut :
 - des fonctions Python de sauvegarde, de discrétisation et de clusterisation des valeurs des fonctions d'activation des données d'apprentissage et des données à prédire
 - une interface web utilisant Node/HTML/Javascript permettant de visualiser les données générées
 
@@ -37,20 +37,19 @@ Clusterisation des signatures
 Affichage des résultats
  
  
-## Dépendances (mettre celle de l’appli web)
+## Dépendances
  
- - il doit contenir les numéros de version des logiciels que vous utilisez; Par exemple si j'utilise Python 2.7 et que vous utilisez Python 3.7 il est possible que votre programme ne fonctionne pas et il me faut pouvoir charger la bonne librairie. Idem si vous utilisez des navigateurs : préciser le ou lesquels ainsi que la version
- 
-spyder 3.3.6
-python 3.7.4
-pandas 0.25.1
-scikit-learn 0.21.3
-tensorflow 1.15.0
-keras 2.2.4
-numpy 1.16.5
+Spyder 3.3.6
+Python 3.7.4
+Pandas 0.25.1
+Scikit-learn 0.21.3
+Tensorflow 1.15.0
+Keras 2.2.4
+Numpy 1.16.5
  
 Google Chrome 81 (81.0.4044.129)
 
+MANQUE LA PARTIE WEB
  
 ## Démonstration
  
@@ -62,23 +61,7 @@ Google Chrome 81 (81.0.4044.129)
 Vous pouvez accéder au rapport de ce projet depuis ce github.
  
  
-## Information
- 
- 
-##Exemple
-```bash
-pip install foobar
-```
- 
-## Usage
- 
-```python
-import foobar
- 
-foobar.pluralize('word') # returns 'words'
-foobar.pluralize('goose') # returns 'geese'
-foobar.singularize('phenomena') # returns 'phenomenon'
-```
+
  
  
  
@@ -86,7 +69,8 @@ foobar.singularize('phenomena') # returns 'phenomenon'
  
  
  
- 
+
+
 
 
 
