@@ -41,15 +41,15 @@ Affichage des résultats
  
 Pour faire fonctionner l'interface :
 
-	- Installer node
+- Installer node
 	
-	- Accéder au dossier mnist_web avec le terminal
+- Accéder au dossier mnist_web avec le terminal
 	
-	- Executer les commandes "npm install express", "npm install fs", "npm install neat-csv", "npm install mustache" (installation des packages nécessaires)
+- Executer les commandes "npm install express", "npm install fs", "npm install neat-csv", "npm install mustache" (installation des packages nécessaires)
 	
-	- Executer la commande "node index.js"
+- Executer la commande "node index.js"
 	
-	- Accéder à l'URL "http://localhost:2400/"
+- Accéder à l'URL "http://localhost:2400/"
 
 Pour adapter l'interface :
 Il est nécessaire que les fichiers csv aient les mêmes en-têtes
