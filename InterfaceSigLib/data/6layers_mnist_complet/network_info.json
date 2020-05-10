@@ -1,0 +1,182 @@
+[
+    {
+        "name": "dense_373",
+        "trainable": true,
+        "batch_input_shape": [
+            null,
+            784
+        ],
+        "dtype": "float32",
+        "units": 512,
+        "activation": "relu",
+        "use_bias": true,
+        "kernel_initializer": {
+            "class_name": "VarianceScaling",
+            "config": {
+                "scale": 1,
+                "mode": "fan_avg",
+                "distribution": "uniform",
+                "seed": null
+            }
+        },
+        "bias_initializer": {
+            "class_name": "Zeros",
+            "config": {}
+        },
+        "kernel_regularizer": null,
+        "bias_regularizer": null,
+        "activity_regularizer": null,
+        "kernel_constraint": null,
+        "bias_constraint": null
+    },
+    {
+        "name": "dense_374",
+        "trainable": true,
+        "units": 512,
+        "activation": "relu",
+        "use_bias": true,
+        "kernel_initializer": {
+            "class_name": "VarianceScaling",
+            "config": {
+                "scale": 1,
+                "mode": "fan_avg",
+                "distribution": "uniform",
+                "seed": null
+            }
+        },
+        "bias_initializer": {
+            "class_name": "Zeros",
+            "config": {}
+        },
+        "kernel_regularizer": null,
+        "bias_regularizer": null,
+        "activity_regularizer": null,
+        "kernel_constraint": null,
+        "bias_constraint": null
+    },
+    {
+        "name": "dense_375",
+        "trainable": true,
+        "units": 512,
+        "activation": "relu",
+        "use_bias": true,
+        "kernel_initializer": {
+            "class_name": "VarianceScaling",
+            "config": {
+                "scale": 1,
+                "mode": "fan_avg",
+                "distribution": "uniform",
+                "seed": null
+            }
+        },
+        "bias_initializer": {
+            "class_name": "Zeros",
+            "config": {}
+        },
+        "kernel_regularizer": null,
+        "bias_regularizer": null,
+        "activity_regularizer": null,
+        "kernel_constraint": null,
+        "bias_constraint": null
+    },
+    {
+        "name": "dense_376",
+        "trainable": true,
+        "units": 512,
+        "activation": "relu",
+        "use_bias": true,
+        "kernel_initializer": {
+            "class_name": "VarianceScaling",
+            "config": {
+                "scale": 1,
+                "mode": "fan_avg",
+                "distribution": "uniform",
+                "seed": null
+            }
+        },
+        "bias_initializer": {
+            "class_name": "Zeros",
+            "config": {}
+        },
+        "kernel_regularizer": null,
+        "bias_regularizer": null,
+        "activity_regularizer": null,
+        "kernel_constraint": null,
+        "bias_constraint": null
+    },
+    {
+        "name": "dense_377",
+        "trainable": true,
+        "units": 512,
+        "activation": "relu",
+        "use_bias": true,
+        "kernel_initializer": {
+            "class_name": "VarianceScaling",
+            "config": {
+                "scale": 1,
+                "mode": "fan_avg",
+                "distribution": "uniform",
+                "seed": null
+            }
+        },
+        "bias_initializer": {
+            "class_name": "Zeros",
+            "config": {}
+        },
+        "kernel_regularizer": null,
+        "bias_regularizer": null,
+        "activity_regularizer": null,
+        "kernel_constraint": null,
+        "bias_constraint": null
+    },
+    {
+        "name": "dense_378",
+        "trainable": true,
+        "units": 512,
+        "activation": "relu",
+        "use_bias": true,
+        "kernel_initializer": {
+            "class_name": "VarianceScaling",
+            "config": {
+                "scale": 1,
+                "mode": "fan_avg",
+                "distribution": "uniform",
+                "seed": null
+            }
+        },
+        "bias_initializer": {
+            "class_name": "Zeros",
+            "config": {}
+        },
+        "kernel_regularizer": null,
+        "bias_regularizer": null,
+        "activity_regularizer": null,
+        "kernel_constraint": null,
+        "bias_constraint": null
+    },
+    {
+        "name": "dense_379",
+        "trainable": true,
+        "units": 10,
+        "activation": "softmax",
+        "use_bias": true,
+        "kernel_initializer": {
+            "class_name": "VarianceScaling",
+            "config": {
+                "scale": 1,
+                "mode": "fan_avg",
+                "distribution": "uniform",
+                "seed": null
+            }
+        },
+        "bias_initializer": {
+            "class_name": "Zeros",
+            "config": {}
+        },
+        "kernel_regularizer": null,
+        "bias_regularizer": null,
+        "activity_regularizer": null,
+        "kernel_constraint": null,
+        "bias_constraint": null
+    }
+]
