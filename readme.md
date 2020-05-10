@@ -52,11 +52,12 @@ Pour faire fonctionner l'interface :
 - Accéder à l'URL "http://localhost:2400/"
 
 Pour adapter l'interface :
-Il est nécessaire que les fichiers csv aient les mêmes en-têtes
 
-Il est nécesaire que le fichier all_clusters.csv ait exactement le même nombre de lignes et de colonnes
+	- Il est nécessaire que les fichiers csv aient les mêmes en-têtes
 
-Il est nécessaire que le fichier clusterized_values.csv ait le même nombre de colonnes
+	- Il est nécesaire que le fichier all_clusters.csv ait exactement le même nombre de lignes et de colonnes
+
+	- Il est nécessaire que le fichier clusterized_values.csv ait le même nombre de colonnes
  
 ## Dépendances
  
