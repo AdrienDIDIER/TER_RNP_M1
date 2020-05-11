@@ -82,7 +82,7 @@ train_signatures = signature.generate_train_signatures(train_X, train_y, model, 
 
 print("\n\n\n============ CLUSTERISATION DES SIGNATURES D'APPRENTISSAGE ========")
 
-clusterized_training_signatures, layers_kmeans = clusterisation.clusterize_training_signatures(train_signatures, train_values)
+clusterized_training_signatures, layers_kmeans = clusterisation.clusterize_training_signatures(5, train_signatures, train_values)
 
 
 print("\n\n\n============ GENERATION DES SIGNATURES DE TEST ========")

@@ -15,13 +15,13 @@ def recup_labels(df_cluster, val, output_classes):
 
 
 #rename clusterize_signatures(signatures, training_class_values)
-def clusterize_training_signatures(training_signatures, train_values):
+def clusterize_training_signatures(n_clusters, training_signatures, train_values):
     clusterized_training_signatures = []
     layers_kmeans = []
     for df in training_signatures:
           output_classes = df.copy().iloc[:, 0].to_numpy()
           df_ = df.drop(df.columns[0], axis=1)
-          kmeans = KMeans(n_clusters=5, random_state=0).fit(df_.values) 
+          kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(df_.values) 
           layers_kmeans.append(kmeans)      
           clusters = []
           for i in range (0,len(train_values)):

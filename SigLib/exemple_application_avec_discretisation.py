@@ -87,7 +87,7 @@ discretized_training_signatures, nbs_bins = discretisation.discretize_training_s
 
 print("\n\n\n============ CLUSTERISATION DES SIGNATURES D'APPRENTISSAGE ========")
 
-clusterized_discretized_training_signatures, layers_kmeans = clusterisation.clusterize_training_signatures(discretized_training_signatures, train_values)
+clusterized_discretized_training_signatures, layers_kmeans = clusterisation.clusterize_training_signatures(5, discretized_training_signatures, train_values)
 
 
 print("\n\n\n============ GENERATION DES SIGNATURES DE TEST ========")
