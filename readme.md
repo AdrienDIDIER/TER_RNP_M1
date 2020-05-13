@@ -21,19 +21,31 @@ Nous avons essentiellement utilisé la base de données MNIST comme jeu de donn�
 ## Installation
 
 # Dépendances Python 
+
 Spyder 3.3.6
+
 Python 3.7.4
+
 Pandas 0.25.1
+
 Scikit-learn 0.21.3
+
 Tensorflow 1.15.0
+
 Keras 2.2.4
+
 Numpy 1.16.5
 
 # Dépendances NodeJS
+
 Google Chrome 81 (81.0.4044.129)
+
 express 4.17.1
+
 csv-parse 4.9.1
+
 mustache 4.0.1
+
 
 # Pour faire fonctionner l'interface
 - Installer node et les dépendances nécessaires
