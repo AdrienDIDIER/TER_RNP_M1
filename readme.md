@@ -64,8 +64,8 @@ Initialisation des variables du projet
 
 ```python
 project_name = 'mnist_complet_3layers'
-train_values = [0,1]
-test_values=[0,1,2]
+train_values = [0,1,2,3,4,5,6,7,8,9]
+test_values=[0,1,2,3,4,5,6,7,8,9]
 
 ```
 
