@@ -20,7 +20,7 @@ Nous avons essentiellement utilisé la base de données MNIST comme jeu de donn�
  
 ## Installation
 
-# Dépendances Python 
+### Dépendances Python 
 
 Spyder 3.3.6
 
@@ -36,7 +36,8 @@ Keras 2.2.4
 
 Numpy 1.16.5
 
-# Dépendances NodeJS
+
+### Dépendances NodeJS
 
 Google Chrome 81 (81.0.4044.129)
 
@@ -47,18 +48,15 @@ csv-parse 4.9.1
 mustache 4.0.1
 
 
-# Pour faire fonctionner l'interface
+### Pour faire fonctionner l'interface
 - Installer node et les dépendances nécessaires
 	
 - Executer la commande "node index.js" dans le dossier de l'interface
 	
 - Accéder à l'URL "http://localhost:2400/"
 
-
-
-
  
-## Mode d’emploi (le mode d'emploi de votre programme (un exemple pour pouvoir lancer votre programme pour quelqu'un qui ne connaît pas puisse facilement l'utiliser.)
+## Mode d’emploi
 
 Deux fichiers d'exemple sont présents dans la librairie.
 
