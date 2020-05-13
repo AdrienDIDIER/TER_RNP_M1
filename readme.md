@@ -45,7 +45,9 @@ Pour faire fonctionner l'interface :
 	
 - Accéder au dossier mnist_web avec le terminal
 	
-- Executer les commandes "npm install express", "npm install fs", "npm install neat-csv", "npm install mustache" (installation des packages nécessaires)
+- Executer la commande "npm install package.json"
+	
+- Executer les commandes "npm install express", "npm install csv-parse", "npm install mustache" (installation des packages nécessaires)
 	
 - Executer la commande "node index.js"
 	
@@ -77,12 +79,17 @@ Numpy 1.16.5
  
 Google Chrome 81 (81.0.4044.129)
 
-MANQUE LA PARTIE WEB
+express 4.17.1
+
+csv-parse 4.9.1
+
+mustache 4.0.1
+
  
 ## Démonstration
  
 si vous avez des vidéos sur youtube -> mettre un lien vers la vidéo pour que les personnes puissent avoir une démonstration. Attention une vidéo est plus facile qu'une démonstration en ligne via un serveur car ce dernier ne pourra pas être utilisé.
- 
+ OU INSERER DIRECTEMENT LA VIDEO DANS LE GIT
  
 ## Rapport
  
