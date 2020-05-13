@@ -84,15 +84,33 @@ model.compile(loss = 'binary_crossentropy' , optimizer = 'adam' , metrics = ['ac
 model.fit(train_X, train_y, epochs = 15, batch_size = 100)
 ```
 
-Extraction des signatures
+Generation des signatures d'apprentissage
+```python
+train_signatures = signature.generate_train_signatures(train_X, train_y, model, train_values, project_name)
+```
+Clusterisation des signatures d'apprentissage
+```python
+clusterized_training_signatures, layers_kmeans = clusterisation.clusterize_training_signatures(10, train_signatures, train_values)
+```
 
-Discrétisation des signatures
+Generation des signatures de test
+```python
+test_signatures = signature.generate_test_signatures(model, project_name, test_X, y_test_values, train_values, test_values)
+```
 
-Clusterisation des signatures
+Clusterisation des signatures de test
+```python
+clusterisation.clusterize_test_signatures(test_signatures, layers_kmeans, test_values, project_name)
+```
 
-Affichage des résultats
- 
- 
+Generation des données pour l'interface
+```python
+misc.generate_interface_data(project_name, model, clusterized_training_signatures)
+```
+On glisse le dossier ${project_name}_DATA dans le dossier data de l'interface. On peut maintenant visualiser les résultats à l'aide de l'interface :
+```cmd
+node index.js
+ ```
 Pour faire fonctionner l'interface :
 
 - Installer node
