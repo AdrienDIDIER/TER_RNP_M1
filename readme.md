@@ -60,13 +60,25 @@ mustache 4.0.1
 
 Deux fichiers d'exemple sont présents dans la librairie.
 
+Dépendances
+```python
+import clusterisation
+import signature
+import misc
+import numpy as np
+import keras
+from keras.models import Sequential
+from keras.layers import Dense
+from tensorflow.keras.datasets import mnist
+from sklearn.preprocessing import LabelEncoder
+```
+
 Initialisation des variables du projet
 
 ```python
 project_name = 'mnist_complet_3layers'
 train_values = [0,1,2,3,4,5,6,7,8,9]
 test_values=[0,1,2,3,4,5,6,7,8,9]
-
 ```
 
 Préparation des données
