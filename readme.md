@@ -21,14 +21,68 @@ Nous avons essentiellement utilisé la base de données MNIST comme jeu de donn�
  
  
 ## Mode d’emploi (le mode d'emploi de votre programme (un exemple pour pouvoir lancer votre programme pour quelqu'un qui ne connaît pas puisse facilement l'utiliser.)
- 
-Programme python
- 
-Programme js avec node
 
-Création du modèle
+Deux fichiers d'exemple sont présents dans la librairie.
 
-Apprentissage du modèle
+Initialisation des variables du projet
+
+```python
+project_name = 'mnist_complet_3layers'
+train_values = [0,1]
+test_values=[0,1,2]
+
+```
+
+Préparation des données
+
+```python
+#utilisation du jeu de données mnist
+(X_train_base, y_train_base), (X_test_base, y_test_base) = mnist.load_data()
+
+X_train = X_train_base
+y_train = y_train_base
+
+X_test = X_test_base
+y_test = y_test_base
+
+X_train = X_train.reshape(len(X_train), 784)
+X_train = X_train.astype('float32')
+
+X_test = X_test.reshape(len(X_test), 784)
+X_test = X_test.astype('float32')
+
+#met les valeurs des pixels entre 0 et 1
+X_train /= 255
+X_test /= 255
+     
+X_train_values, y_train_values = misc.get_dataset_values(train_values, X_train, y_train, limit=[2000,2000,2000,2000,2000,2000,2000,2000,2000,2000])  
+X_test_values, y_test_values = misc.get_dataset_values(test_values, X_test, y_test, limit=[100,100,100,100,100,100,100,100,100,100])
+
+train_X=np.asarray(X_train_values)
+test_X = np.asarray(X_test_values)
+
+train_y=y_train_values
+
+encoder = LabelEncoder()
+
+train_y=encoder.fit_transform(train_y)
+
+train_y=keras.utils.to_categorical(train_y, len(train_values))
+```
+
+Création et apprentissage du modèle
+
+```python
+model = Sequential()
+model.add(Dense(512, input_dim = 784 , activation = 'relu'))
+model.add(Dense(512, activation = 'relu'))
+model.add(Dense(512, activation = 'relu'))
+model.add(Dense(len(train_values), activation='softmax'))
+
+model.compile(loss = 'binary_crossentropy' , optimizer = 'adam' , metrics = ['accuracy'] )
+
+model.fit(train_X, train_y, epochs = 15, batch_size = 100)
+```
 
 Extraction des signatures
 
