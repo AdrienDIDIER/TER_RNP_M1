@@ -18,7 +18,33 @@ Cette librairie est le fruit d'un projet de TER en Master 1 Informatique à l'un
 
 Nous avons essentiellement utilisé la base de données MNIST comme jeu de données et nous fournissons quelques fonctions permettant de faciliter l'utilisation de celle-ci avec notre librairie.
  
- 
+## Installation
+
+# Dépendances Python 
+Spyder 3.3.6
+Python 3.7.4
+Pandas 0.25.1
+Scikit-learn 0.21.3
+Tensorflow 1.15.0
+Keras 2.2.4
+Numpy 1.16.5
+
+# Dépendances NodeJS
+Google Chrome 81 (81.0.4044.129)
+express 4.17.1
+csv-parse 4.9.1
+mustache 4.0.1
+
+# Pour faire fonctionner l'interface
+- Installer node et les dépendances nécessaires
+	
+- Executer la commande "node index.js" dans le dossier de l'interface
+	
+- Accéder à l'URL "http://localhost:2400/"
+
+
+
+
  
 ## Mode d’emploi (le mode d'emploi de votre programme (un exemple pour pouvoir lancer votre programme pour quelqu'un qui ne connaît pas puisse facilement l'utiliser.)
 
@@ -111,19 +137,6 @@ On glisse le dossier ${project_name}_DATA dans le dossier data de l'interface. O
 ```cmd
 node index.js
  ```
-Pour faire fonctionner l'interface :
-
-- Installer node
-	
-- Accéder au dossier mnist_web avec le terminal
-	
-- Executer la commande "npm install package.json"
-	
-- Executer les commandes "npm install express", "npm install csv-parse", "npm install mustache" (installation des packages nécessaires)
-	
-- Executer la commande "node index.js"
-	
-- Accéder à l'URL "http://localhost:2400/"
 
 Pour adapter l'interface :
 
@@ -133,29 +146,6 @@ Pour adapter l'interface :
 
 	- Il est nécessaire que le fichier clusterized_values.csv ait le même nombre de colonnes
  
-## Dépendances
- 
-Spyder 3.3.6
-
-Python 3.7.4
-
-Pandas 0.25.1
-
-Scikit-learn 0.21.3
-
-Tensorflow 1.15.0
-
-Keras 2.2.4
-
-Numpy 1.16.5
- 
-Google Chrome 81 (81.0.4044.129)
-
-express 4.17.1
-
-csv-parse 4.9.1
-
-mustache 4.0.1
 
  
 ## Démonstration
