@@ -164,7 +164,7 @@ node index.js
  
 Une présentation de notre projet est disponible à l'adresse suivante https://youtu.be/M4ecwoJaSJU
  
-[![Watch the video]()](https://youtu.be/M4ecwoJaSJU)
+[![Watch the video](https://github.com/AdrienL3/TER_RNP_M1/blob/master/interface.png)](https://youtu.be/M4ecwoJaSJU)
  
 ## Rapport
  
