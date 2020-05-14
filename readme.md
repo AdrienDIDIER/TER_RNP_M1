@@ -164,7 +164,7 @@ node index.js
  
 Une présentation de notre projet est disponible à l'adresse suivante https://youtu.be/M4ecwoJaSJU
  
-[![Watch the video](https://i.imgur.com/vKb2F1B.png)](https://youtu.be/vt5fpE0bzSY)
+[![Watch the video]()](https://youtu.be/M4ecwoJaSJU)
  
 ## Rapport
  
