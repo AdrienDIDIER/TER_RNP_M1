@@ -164,6 +164,8 @@ node index.js
  
 Une présentation de notre projet est disponible à l'adresse suivante https://youtu.be/M4ecwoJaSJU
  
+[![Watch the video](https://i.imgur.com/vKb2F1B.png)](https://youtu.be/vt5fpE0bzSY)
+ 
 ## Rapport
  
 Vous pouvez accéder au rapport de ce projet depuis ce github.
