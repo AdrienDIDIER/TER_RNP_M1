@@ -162,8 +162,7 @@ node index.js
  
 ## Démonstration
  
-si vous avez des vidéos sur youtube -> mettre un lien vers la vidéo pour que les personnes puissent avoir une démonstration. Attention une vidéo est plus facile qu'une démonstration en ligne via un serveur car ce dernier ne pourra pas être utilisé.
- OU INSERER DIRECTEMENT LA VIDEO DANS LE GIT
+Une présentation de notre projet est disponible à l'adresse suivante https://youtu.be/M4ecwoJaSJU
  
 ## Rapport
  
