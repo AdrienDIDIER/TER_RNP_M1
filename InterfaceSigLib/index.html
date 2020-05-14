@@ -149,6 +149,8 @@
         var window_height = $(window).height();
         var window_width = $(window).width();
         var INTERFACE_HEIGHT = window_height - 100
+        var VIS_HEIGHT = INTERFACE_HEIGHT - 50
+        var TEXT_HEIGHT = INTERFACE_HEIGHT - VIS_HEIGHT
 
         var TABLE_WIDTH = 420
         var INTERFACE_WIDTH =  window_width - TABLE_WIDTH
@@ -159,8 +161,9 @@
 
         function resizeCanvas(window_height){           
             INTERFACE_HEIGHT = window_height - 100
+            VIS_HEIGHT = INTERFACE_HEIGHT - 50
             canvas.height = window_height - 30
-            MAX_NODES_PER_COLONNE = INTERFACE_HEIGHT / (MIN_NEURONE_SIZE * 2 + ESPACE_MIN_ENTRE_NEURONE)      
+            MAX_NODES_PER_COLONNE = VIS_HEIGHT / (MIN_NEURONE_SIZE * 2 + ESPACE_MIN_ENTRE_NEURONE)      
             rect_arcs_neurones = draw();
             canvas.width = rect_arcs_neurones[rect_arcs_neurones.length - 1].x + 150
             rect_arcs_neurones = draw();
@@ -194,6 +197,7 @@
                 new SimpleBar($(this)[0], { autoHide: false });
                 $(this).css('overflow', '')
             });
+
         });
 
         $('table').on('click', 'tbody tr', function(event) {
@@ -303,6 +307,8 @@
             canvas = document.querySelector('#canvas');
             context = canvas.getContext('2d');
 
+            canvas.style.display="none";
+
             canvas.height = window_height - 30
 
             //draw neural network
@@ -335,11 +341,11 @@
         MIN_NEURONE_SIZE = 5
         MAX_NEURONE_SIZE = 50   
         ESPACE_MIN_ENTRE_NEURONE = 2
-        MAX_NODES_PER_COLONNE = INTERFACE_HEIGHT / (MIN_NEURONE_SIZE * 2 + ESPACE_MIN_ENTRE_NEURONE)
+        MAX_NODES_PER_COLONNE = VIS_HEIGHT / (MIN_NEURONE_SIZE * 2 + ESPACE_MIN_ENTRE_NEURONE)
         X_POS_NEURAL_NETWORK = 180
 
         function getSizeNeurones(nodes_number){
-            var t = (INTERFACE_HEIGHT - (ESPACE_MIN_ENTRE_NEURONE * (nodes_number + 1))) / nodes_number
+            var t = (VIS_HEIGHT - (ESPACE_MIN_ENTRE_NEURONE * (nodes_number + 1))) / nodes_number
             if(t/2 < MIN_NEURONE_SIZE){
                 return MIN_NEURONE_SIZE
             }
@@ -413,7 +419,7 @@
                 if(sizes_neurones_per_layer[i] > MIN_NEURONE_SIZE){
                     arcs_neurones[i] = new Array(1)
                     arcs_neurones[i][0] = new Array(nb_colonnes_in_layer[i])
-                    var espace = INTERFACE_HEIGHT - (2 * sizes_neurones_per_layer[i] *  number_of_nodes_in_layer[i])
+                    var espace = VIS_HEIGHT - (2 * sizes_neurones_per_layer[i] *  number_of_nodes_in_layer[i])
                     var espace_entre_neurones = espace / (number_of_nodes_in_layer[i] + 1)
                     y += espace_entre_neurones
                     var y_save = y              
@@ -429,7 +435,7 @@
                     //rect_arcs_neurones[i].draw()
                 }else{      
                     arcs_neurones[i] = new Array(nb_colonnes_in_layer[i])                           
-                    var espace = INTERFACE_HEIGHT - (nb_lignes_in_layer[i] * sizes_neurones_per_layer[i] * 2 + ((ESPACE_MIN_ENTRE_NEURONE * nb_lignes_in_layer[i]) - ESPACE_MIN_ENTRE_NEURONE))
+                    var espace = VIS_HEIGHT - (nb_lignes_in_layer[i] * sizes_neurones_per_layer[i] * 2 + ((ESPACE_MIN_ENTRE_NEURONE * nb_lignes_in_layer[i]) - ESPACE_MIN_ENTRE_NEURONE))
                     for(var j = 0; j < nb_colonnes_in_layer[i]; j++){
                         y += espace/2
                         arcs_neurones[i][j] = new Array(nb_lignes_in_layer[i])
@@ -682,35 +688,44 @@
                 }        
 
                 var y_save;
+                var svgLayerTexts = []
+                var x_save;
                 for(var l = 0; l < coordClusters.length; l++){
                     if(l == 0){
                         y_save = 50
                         for(var c = 0; c < coordClusters[0].length; c++){
                             graph.nodes[c].x = 50
                             graph.nodes[c].y = y_save
-                            graph.nodes[c].dy = INTERFACE_HEIGHT * coordClusters[l][c]['proportion']
+                            graph.nodes[c].dy = VIS_HEIGHT * coordClusters[l][c]['proportion']
                             y_save += graph.nodes[c].dy
                         }
+                        var svgInputText = svg.append("text").attr("x", 25).attr("y", y_save + 25)
+                        svgInputText.text("Input layer")
                     }else if(l == coordClusters.length - 1 ){
-                        y_save = 50
+                        y_save = 50                      
                         for(var c = 0; c < coordClusters[l].length; c++){
                             var node_index = coordClusters[0].length + (l-1) * coordClusters[l-1].length + c
                             graph.nodes[node_index].y = y_save
-                            graph.nodes[node_index].dy = INTERFACE_HEIGHT * coordClusters[l][c]['proportion']
+                            graph.nodes[node_index].dy = VIS_HEIGHT * coordClusters[l][c]['proportion']
                             graph.nodes[node_index].x = rect_arcs_neurones[l-1].x + (rect_arcs_neurones[l-1].w)
+                            x_save = rect_arcs_neurones[l-1].x + (rect_arcs_neurones[l-1].w)
                             y_save += graph.nodes[node_index].dy
                         }
+                        var svgOutputText = svg.append("text").attr("x", x_save - 40).attr("y", y_save + 25)
+                        svgOutputText.text("Output layer")
                     }else{
                             y_save = 50
                             for(var c = 0; c < coordClusters[l].length; c++){
                                 var node_index = coordClusters[0].length + (l-1) * coordClusters[l].length + c
                                 graph.nodes[node_index].x = rect_arcs_neurones[l-1].x + rect_arcs_neurones[l-1].w
+                                x_save = graph.nodes[node_index].x
                                 graph.nodes[node_index].y = y_save
-                                graph.nodes[node_index].dy = INTERFACE_HEIGHT * (graph.nodes[node_index].value / totValue)
+                                graph.nodes[node_index].dy = VIS_HEIGHT * (graph.nodes[node_index].value / totValue)
                                 graph.nodes[node_index].main_classes = coordClusters[l][c].main_classes
                                 graph.nodes[node_index].minor_classes = coordClusters[l][c].minor_classes
-                                y_save += INTERFACE_HEIGHT * (graph.nodes[node_index].value / totValue)
+                                y_save += VIS_HEIGHT * (graph.nodes[node_index].value / totValue)
                             }
+                            svgLayerTexts.push(svg.append("text").attr("x", x_save - 30).attr("y", y_save + 25).text("Hidden Layer " + l))
                     }
                 }
 
@@ -850,6 +865,8 @@
                     // Add hover text
                     .append("title")
                     .text(function(d) { return d.name + "\n" + d.value + "\n main: " + JSON.stringify(d.main_classes) + "\n minor: " + JSON.stringify(d.minor_classes)});
+                
+                
         }
 
         function loadSankey(rect_arcs_neurones, coordClusters, clustersColors){
@@ -933,6 +950,8 @@
             }
 
             var y_save;
+            var x_save;
+            var svgLayerTexts = []
             for(var l = 0; l < coordClusters.length; l++){
 
                     if(l == 0){
@@ -940,33 +959,40 @@
                         for(var c = 0; c < coordClusters[0].length; c++){
                             graph.nodes[c].x = 50
                             graph.nodes[c].y = y_save
-                            graph.nodes[c].dy = INTERFACE_HEIGHT * coordClusters[l][c]['proportion']
+                            graph.nodes[c].dy = VIS_HEIGHT * coordClusters[l][c]['proportion']
                             y_save += graph.nodes[c].dy
                         }
+                        var svgInputText = svg.append("text").attr("x", 25).attr("y", y_save + 25)
+                        svgInputText.text("Input layer")
                     }else if(l == coordClusters.length - 1 ){
                         y_save = 50
                         for(var c = 0; c < coordClusters[l].length; c++){
                             var node_index = coordClusters[0].length + (l-1) * coordClusters[l-1].length + c
                             graph.nodes[node_index].y = y_save
-                            graph.nodes[node_index].dy = INTERFACE_HEIGHT * coordClusters[l][c]['proportion']
+                            graph.nodes[node_index].dy = VIS_HEIGHT * coordClusters[l][c]['proportion']
                             graph.nodes[node_index].x = rect_arcs_neurones[l-1].x + (rect_arcs_neurones[l-1].w)
+                            x_save = graph.nodes[node_index].x
                             y_save += graph.nodes[node_index].dy
                         }
+                        var svgOutputText = svg.append("text").attr("x", x_save - 40).attr("y", y_save + 25)
+                        svgOutputText.text("Output layer")
                     }else{
                             y_save = 50
                             for(var c = 0; c < coordClusters[l].length; c++){
                                 var node_index = coordClusters[0].length + (l-1) * coordClusters[l].length + c
                                 graph.nodes[node_index].x = rect_arcs_neurones[l-1].x + rect_arcs_neurones[l-1].w
+                                x_save = graph.nodes[node_index].x
                                 graph.nodes[node_index].y = y_save
-                                graph.nodes[node_index].dy = INTERFACE_HEIGHT * (coordClusters[l][c]['signatures_count'] / totValue)
+                                graph.nodes[node_index].dy = VIS_HEIGHT * (coordClusters[l][c]['signatures_count'] / totValue)
                                 graph.nodes[node_index].main_classes = coordClusters[l][c].main_classes
                                 y_save += graph.nodes[node_index].dy 
                             }
+                            svgLayerTexts.push(svg.append("text").attr("x", x_save - 30).attr("y", y_save + 25).text("Hidden Layer " + l))
                     }
                 }
 
                 for(var link of graph.links){
-                    var dy = INTERFACE_HEIGHT * (link.value / totValue)
+                    var dy = VIS_HEIGHT * (link.value / totValue)
                     if(dy < 10){
                         link.dy = 10
                     }else{
