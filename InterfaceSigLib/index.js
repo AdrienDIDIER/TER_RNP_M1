@@ -45,6 +45,38 @@ fs.readFile('./index.html', "utf8", function read(err, data) {
   html_file = data;
 });
 
+function countTrainClasses(clusters_info){
+  classes = []
+  for(var c of clusters_info){
+    for(var cc of c){
+      if(!classes.includes(cc.class)){
+        classes.push(cc.class)
+      }
+    }
+  }
+  return classes
+}
+
+function countmaxClustIndex(clusters_info){
+  max = 0
+  for(var c of clusters_info[0]){
+      if(c.cluster_index > max){
+        max = c.cluster_index
+    }
+  }
+  return max
+}
+
+function countTestClasses(clusterized_values){
+  var classes = []
+  for(var c of clusterized_values){
+    if(!classes.includes(parseInt(c.input_class))){
+      classes.push(parseInt(c.input_class))
+    }
+  }
+  return classes
+}
+
 
 
 function loadHtmlData(directory_name){
@@ -54,13 +86,13 @@ function loadHtmlData(directory_name){
   var nb_layers;
 
   var data = fs.readFileSync('./data/'+directory_name+'/clusters_info.json')
-  var result = JSON.parse(data)
-  html_data.all_clusters = JSON.stringify(result)
-  nb_layers = result.length
+  var all_clusters = JSON.parse(data)
+  html_data.all_clusters = JSON.stringify(all_clusters)
+  nb_layers = all_clusters.length
 
   data = fs.readFileSync('./data/'+directory_name+'/network_info.json')
-  result = JSON.parse(data)
-  html_data.info_network = JSON.stringify(result);
+  var info_network = JSON.parse(data)
+  html_data.info_network = JSON.stringify(info_network);
 
   result = new Array();
 
@@ -102,6 +134,20 @@ function loadHtmlData(directory_name){
   html_data.tab_values = groupBy_result
 
   html_data.current_dir_name = directory_name
+
+  var train_classes = countTrainClasses(all_clusters)
+  var test_classes = countTestClasses(groupBy_result)
+  var max_clust_index = countmaxClustIndex(all_clusters)
+
+  html_data.modele_text = "<p>Ce modèle est un réseau de neurones à " + nb_layers + " couches cachées possédant les caractéristiques suivantes: <p>"
+  html_data.modele_text += "<ul><li>" + info_network[0].batch_input_shape[1] + " features dans la couche d'entrée</li>"
+  for(var l = 0; l < nb_layers; l++){
+    html_data.modele_text += "<li>" + info_network[l].units + " neurones dans la couche couche cachée n°" + (l+1) + "</li>"
+  }
+  html_data.modele_text += "<li>" + info_network[info_network.length - 1].units + " neurones dans la couche de sortie</li></ul>"
+  html_data.modele_text += "<p>Le modèle a été entraîné sur les classes : " + JSON.stringify(train_classes) + "</p>"
+  html_data.modele_text += "<p>Le modèle a été testé sur les classes : " + JSON.stringify(test_classes) + "</p>"
+  html_data.modele_text += "<p>On a choisi " + (max_clust_index+1) + " clusters par couche couchée</p>"
 
   return html_data
 }

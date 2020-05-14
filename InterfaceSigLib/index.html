@@ -97,6 +97,11 @@
             </tbody>
         </table>
     </div>
+
+    <button style="z-index: 4;
+    position:absolute;
+    left: 440px;
+    bottom: 10px;" type="button" class="btn btn-secondary" data-container="body" data-toggle="popover" data-placement="top" data-html="true" data-content="{{modele_text}}">Informations sur le modèle</button>
   <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
   <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.js"></script>
 
@@ -106,6 +111,10 @@
   <script src="https://cdn.jsdelivr.net/gh/holtzy/D3-graph-gallery@master/LIB/sankey.js"></script>
 
   <script>
+
+$(function () {
+  $('[data-toggle="popover"]').popover()
+})
 
         $(function(){
 
