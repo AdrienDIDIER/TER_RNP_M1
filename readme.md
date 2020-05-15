@@ -104,7 +104,7 @@ X_train /= 255
 X_test /= 255
      
 X_train_values, y_train_values = misc.get_dataset_values(train_values, X_train, y_train)  
-X_test_values, y_test_values = misc.get_dataset_values(test_values, X_test, y_test, limit)
+X_test_values, y_test_values = misc.get_dataset_values(test_values, X_test, y_test)
 
 train_X=np.asarray(X_train_values)
 test_X = np.asarray(X_test_values)
