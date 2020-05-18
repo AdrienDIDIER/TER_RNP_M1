@@ -142,12 +142,12 @@ function loadHtmlData(directory_name){
   html_data.modele_text = "<p>Ce modèle est un réseau de neurones à " + nb_layers + " couches cachées possédant les caractéristiques suivantes: <p>"
   html_data.modele_text += "<ul><li>" + info_network[0].batch_input_shape[1] + " features dans la couche d'entrée</li>"
   for(var l = 0; l < nb_layers; l++){
-    html_data.modele_text += "<li>" + info_network[l].units + " neurones dans la couche couche cachée n°" + (l+1) + "</li>"
+    html_data.modele_text += "<li>" + info_network[l].units + " neurones dans la couche cachée n°" + (l+1) + "</li>"
   }
   html_data.modele_text += "<li>" + info_network[info_network.length - 1].units + " neurones dans la couche de sortie</li></ul>"
   html_data.modele_text += "<p>Le modèle a été entraîné sur les classes : " + JSON.stringify(train_classes) + "</p>"
   html_data.modele_text += "<p>Le modèle a été testé sur les classes : " + JSON.stringify(test_classes) + "</p>"
-  html_data.modele_text += "<p>On a choisi " + (max_clust_index+1) + " clusters par couche couchée</p>"
+  html_data.modele_text += "<p>On a choisi " + (max_clust_index+1) + " clusters par couche cachée</p>"
 
   return html_data
 }
