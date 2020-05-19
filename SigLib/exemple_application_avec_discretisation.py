@@ -99,7 +99,7 @@ test_signatures = signature.generate_test_signatures(model, project_name, test_X
 
 print("\n\n\n============ DISCRETISATION DES SIGNATURES DE TEST ========")
 
-discretized_test_signatures, nbs_bins = discretisation.discretize_test_signatures(project_name, test_values, nbs_bins)
+discretized_test_signatures = discretisation.discretize_test_signatures(project_name, test_values, nbs_bins)
 
 
 print("\n\n\n============ CLUSTERISATION DES SIGNATURES DE TEST ========")
