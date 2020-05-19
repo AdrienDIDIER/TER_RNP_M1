@@ -108,17 +108,15 @@ X_test /= 255
 X_train_values, y_train_values = misc.get_dataset_values(train_values, X_train, y_train)  
 X_test_values, y_test_values = misc.get_dataset_values(test_values, X_test, y_test)
 
-#
 train_X=np.asarray(X_train_values)
 test_X = np.asarray(X_test_values)
 
 train_y=y_train_values
 
-#
 encoder = LabelEncoder()
 train_y=encoder.fit_transform(train_y)
 
-#
+#Convertit un vecteur de classe (entiers) en matrice de classe binaire.
 train_y=keras.utils.to_categorical(train_y, len(train_values))
 ```
 
