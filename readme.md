@@ -93,7 +93,7 @@ y_train = y_train_base
 X_test = X_test_base
 y_test = y_test_base
 
-#
+#permet d'adapter les features pour qu’elles correspondent à des valeurs entre 0 et 1.
 X_train = X_train.reshape(len(X_train), 784)
 X_train = X_train.astype('float32')
 
@@ -104,7 +104,7 @@ X_test = X_test.astype('float32')
 X_train /= 255
 X_test /= 255
      
-#
+#récupère seulement les classes souhaitées passées en paramètre
 X_train_values, y_train_values = misc.get_dataset_values(train_values, X_train, y_train)  
 X_test_values, y_test_values = misc.get_dataset_values(test_values, X_test, y_test)
 
